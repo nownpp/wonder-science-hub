@@ -1,5 +1,6 @@
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import ThumbnailUpload from "@/components/ThumbnailUpload";
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
@@ -9,7 +10,6 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
-  Upload, 
   Video, 
   Atom, 
   Plus, 
@@ -17,7 +17,6 @@ import {
   Edit2,
   Play,
   FileText,
-  Image as ImageIcon,
   Loader2,
   LogOut
 } from "lucide-react";
@@ -71,6 +70,7 @@ const DashboardPage = () => {
   const [newVideoDescription, setNewVideoDescription] = useState("");
   const [newVideoCategory, setNewVideoCategory] = useState("");
   const [newVideoUrl, setNewVideoUrl] = useState("");
+  const [newVideoThumbnail, setNewVideoThumbnail] = useState<string | null>(null);
   const [addingVideo, setAddingVideo] = useState(false);
   
   // Simulation form state
@@ -78,6 +78,7 @@ const DashboardPage = () => {
   const [newSimDescription, setNewSimDescription] = useState("");
   const [newSimCategory, setNewSimCategory] = useState("");
   const [newSimUrl, setNewSimUrl] = useState("");
+  const [newSimThumbnail, setNewSimThumbnail] = useState<string | null>(null);
   const [addingSimulation, setAddingSimulation] = useState(false);
   
   // Edit dialog state
@@ -147,6 +148,7 @@ const DashboardPage = () => {
         description: newVideoDescription || null,
         category: newVideoCategory || 'عام',
         video_url: newVideoUrl,
+        thumbnail_url: newVideoThumbnail,
       })
       .select()
       .single();
@@ -160,6 +162,7 @@ const DashboardPage = () => {
       setNewVideoDescription("");
       setNewVideoCategory("");
       setNewVideoUrl("");
+      setNewVideoThumbnail(null);
       toast.success("تمت إضافة الفيديو بنجاح!");
     }
     
@@ -191,6 +194,7 @@ const DashboardPage = () => {
         description: editingVideo.description,
         category: editingVideo.category,
         video_url: editingVideo.video_url,
+        thumbnail_url: editingVideo.thumbnail_url,
       })
       .eq('id', editingVideo.id);
     
@@ -219,6 +223,7 @@ const DashboardPage = () => {
         description: newSimDescription || null,
         category: newSimCategory || 'عام',
         simulation_url: newSimUrl || null,
+        thumbnail_url: newSimThumbnail,
       })
       .select()
       .single();
@@ -232,6 +237,7 @@ const DashboardPage = () => {
       setNewSimDescription("");
       setNewSimCategory("");
       setNewSimUrl("");
+      setNewSimThumbnail(null);
       toast.success("تمت إضافة المحاكاة بنجاح!");
     }
     
@@ -263,6 +269,7 @@ const DashboardPage = () => {
         description: editingSimulation.description,
         category: editingSimulation.category,
         simulation_url: editingSimulation.simulation_url,
+        thumbnail_url: editingSimulation.thumbnail_url,
       })
       .eq('id', editingSimulation.id);
     
@@ -377,6 +384,14 @@ const DashboardPage = () => {
                         value={newVideoDescription}
                         onChange={(e) => setNewVideoDescription(e.target.value)}
                         rows={3}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2">الصورة المصغرة</label>
+                      <ThumbnailUpload
+                        value={newVideoThumbnail}
+                        onChange={setNewVideoThumbnail}
+                        folder="videos"
                       />
                     </div>
                     <Button 
@@ -501,6 +516,14 @@ const DashboardPage = () => {
                         onChange={(e) => setNewSimDescription(e.target.value)}
                       />
                     </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2">الصورة المصغرة</label>
+                      <ThumbnailUpload
+                        value={newSimThumbnail}
+                        onChange={setNewSimThumbnail}
+                        folder="simulations"
+                      />
+                    </div>
                     <Button 
                       variant="simulation" 
                       className="w-full"
@@ -618,6 +641,14 @@ const DashboardPage = () => {
                   rows={3}
                 />
               </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">الصورة المصغرة</label>
+                <ThumbnailUpload
+                  value={editingVideo.thumbnail_url}
+                  onChange={(url) => setEditingVideo({...editingVideo, thumbnail_url: url})}
+                  folder="videos"
+                />
+              </div>
             </div>
           )}
           <DialogFooter>
@@ -662,6 +693,14 @@ const DashboardPage = () => {
                   value={editingSimulation.description || ''}
                   onChange={(e) => setEditingSimulation({...editingSimulation, description: e.target.value})}
                   rows={3}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">الصورة المصغرة</label>
+                <ThumbnailUpload
+                  value={editingSimulation.thumbnail_url}
+                  onChange={(url) => setEditingSimulation({...editingSimulation, thumbnail_url: url})}
+                  folder="simulations"
                 />
               </div>
             </div>
