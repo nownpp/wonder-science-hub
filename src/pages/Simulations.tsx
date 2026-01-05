@@ -1,166 +1,64 @@
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Droplets, Sun, Cloud, ArrowDown, RotateCcw, Play, Pause } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Atom, Loader2, ExternalLink } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
-const WaterCycleSimulation = () => {
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [step, setStep] = useState(0);
-
-  const steps = [
-    { title: "التبخر", description: "تسخن الشمس الماء فيتحول إلى بخار ماء ويصعد للأعلى", icon: Sun, color: "text-accent" },
-    { title: "التكثف", description: "يبرد بخار الماء في الجو العلوي ويتحول إلى قطرات ماء صغيرة تشكل السحب", icon: Cloud, color: "text-video" },
-    { title: "الهطول", description: "تسقط قطرات الماء من السحب على شكل مطر أو ثلج", icon: Droplets, color: "text-secondary" },
-    { title: "الجريان", description: "يجري الماء على سطح الأرض ليصل إلى الأنهار والبحار", icon: ArrowDown, color: "text-science" },
-  ];
-
-  const handlePlay = () => {
-    setIsPlaying(true);
-    const interval = setInterval(() => {
-      setStep((prev) => {
-        if (prev >= steps.length - 1) {
-          clearInterval(interval);
-          setIsPlaying(false);
-          return 0;
-        }
-        return prev + 1;
-      });
-    }, 2000);
-  };
-
-  const handleReset = () => {
-    setStep(0);
-    setIsPlaying(false);
-  };
-
-  return (
-    <Card variant="simulation" className="h-full">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Droplets className="w-6 h-6 text-video" />
-          دورة الماء في الطبيعة
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        {/* Animation Area */}
-        <div className="relative h-64 bg-gradient-to-b from-video/20 to-science/20 rounded-2xl mb-6 overflow-hidden">
-          {/* Sun */}
-          <motion.div
-            className="absolute top-4 right-4"
-            animate={{ scale: step === 0 ? [1, 1.2, 1] : 1 }}
-            transition={{ duration: 1, repeat: step === 0 && isPlaying ? Infinity : 0 }}
-          >
-            <Sun className={`w-12 h-12 ${step === 0 ? "text-accent" : "text-accent/50"}`} />
-          </motion.div>
-
-          {/* Cloud */}
-          <motion.div
-            className="absolute top-8 left-1/2 transform -translate-x-1/2"
-            animate={{ 
-              y: step >= 1 ? 0 : -50,
-              opacity: step >= 1 ? 1 : 0,
-              scale: step === 1 ? [1, 1.1, 1] : 1,
-            }}
-            transition={{ duration: 0.8 }}
-          >
-            <Cloud className={`w-16 h-16 ${step === 1 ? "text-video" : "text-video/70"}`} />
-          </motion.div>
-
-          {/* Rain drops */}
-          {step >= 2 && (
-            <div className="absolute top-24 left-1/2 transform -translate-x-1/2 flex gap-2">
-              {[0, 1, 2].map((i) => (
-                <motion.div
-                  key={i}
-                  initial={{ y: 0, opacity: 0 }}
-                  animate={{ y: [0, 100], opacity: [1, 0] }}
-                  transition={{ duration: 1.5, delay: i * 0.3, repeat: isPlaying && step === 2 ? Infinity : 0 }}
-                >
-                  <Droplets className="w-4 h-4 text-secondary" />
-                </motion.div>
-              ))}
-            </div>
-          )}
-
-          {/* Water */}
-          <motion.div
-            className="absolute bottom-0 left-0 right-0 bg-video/40 rounded-t-full"
-            animate={{ height: step >= 3 ? "60px" : "40px" }}
-            transition={{ duration: 0.8 }}
-          />
-
-          {/* Evaporation arrows */}
-          {step === 0 && isPlaying && (
-            <div className="absolute bottom-16 left-1/3 flex gap-4">
-              {[0, 1, 2].map((i) => (
-                <motion.div
-                  key={i}
-                  initial={{ y: 0, opacity: 0 }}
-                  animate={{ y: [-50, -100], opacity: [1, 0] }}
-                  transition={{ duration: 2, delay: i * 0.4, repeat: Infinity }}
-                  className="text-accent text-xs"
-                >
-                  ↑
-                </motion.div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Current Step */}
-        <motion.div
-          key={step}
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          className="bg-muted/50 rounded-xl p-4 mb-4"
-        >
-          <div className="flex items-center gap-3 mb-2">
-            {(() => {
-              const StepIcon = steps[step].icon;
-              return <StepIcon className={`w-6 h-6 ${steps[step].color}`} />;
-            })()}
-            <h4 className="font-bold text-lg">{steps[step].title}</h4>
-          </div>
-          <p className="text-muted-foreground text-sm">{steps[step].description}</p>
-        </motion.div>
-
-        {/* Controls */}
-        <div className="flex gap-3">
-          <Button
-            variant="simulation"
-            onClick={handlePlay}
-            disabled={isPlaying}
-            className="flex-1"
-          >
-            <Play className="w-4 h-4 ml-2" />
-            تشغيل
-          </Button>
-          <Button variant="outline" onClick={handleReset}>
-            <RotateCcw className="w-4 h-4" />
-          </Button>
-        </div>
-
-        {/* Steps indicator */}
-        <div className="flex justify-center gap-2 mt-4">
-          {steps.map((_, i) => (
-            <button
-              key={i}
-              onClick={() => setStep(i)}
-              className={`w-3 h-3 rounded-full transition-colors ${
-                i === step ? "bg-simulation" : "bg-muted"
-              }`}
-            />
-          ))}
-        </div>
-      </CardContent>
-    </Card>
-  );
-};
+interface SimulationType {
+  id: string;
+  title: string;
+  description: string | null;
+  simulation_url: string | null;
+  thumbnail_url: string | null;
+  category: string;
+  difficulty: string | null;
+}
 
 const SimulationsPage = () => {
+  const [simulations, setSimulations] = useState<SimulationType[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedCategory, setSelectedCategory] = useState("الكل");
+  const [selectedSimulation, setSelectedSimulation] = useState<SimulationType | null>(null);
+
+  useEffect(() => {
+    const fetchSimulations = async () => {
+      const { data, error } = await supabase
+        .from('simulations')
+        .select('id, title, description, simulation_url, thumbnail_url, category, difficulty')
+        .order('created_at', { ascending: false });
+      
+      if (error) {
+        console.error('Error fetching simulations:', error);
+      } else {
+        setSimulations(data || []);
+      }
+      setLoading(false);
+    };
+
+    fetchSimulations();
+  }, []);
+
+  const categories = useMemo(() => {
+    const cats = new Set(simulations.map(s => s.category));
+    return ["الكل", ...Array.from(cats)];
+  }, [simulations]);
+
+  const filteredSimulations = selectedCategory === "الكل" 
+    ? simulations 
+    : simulations.filter(s => s.category === selectedCategory);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-12 h-12 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -179,29 +77,128 @@ const SimulationsPage = () => {
             </p>
           </motion.div>
 
-          <div className="max-w-2xl mx-auto">
+          {/* Category Filter */}
+          {categories.length > 1 && (
             <motion.div
-              initial={{ opacity: 0, y: 30 }}
+              className="flex flex-wrap justify-center gap-3 mb-8"
+              initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
             >
-              <WaterCycleSimulation />
+              {categories.map((category) => (
+                <Button
+                  key={category}
+                  variant={selectedCategory === category ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setSelectedCategory(category)}
+                >
+                  {category}
+                </Button>
+              ))}
             </motion.div>
-          </div>
+          )}
 
-          {/* Coming Soon */}
-          <motion.div
-            className="mt-12 text-center"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.4 }}
-          >
-            <p className="text-muted-foreground">
-              🚀 المزيد من المحاكاة قادمة قريباً!
-            </p>
-          </motion.div>
+          {/* Simulations Grid */}
+          {filteredSimulations.length === 0 ? (
+            <div className="text-center py-16">
+              <p className="text-muted-foreground text-lg">
+                لا توجد محاكاة متاحة حالياً
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredSimulations.map((sim, index) => (
+                <motion.div
+                  key={sim.id}
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                >
+                  <Card 
+                    variant="simulation" 
+                    className="cursor-pointer hover:shadow-lg transition-shadow h-full"
+                    onClick={() => setSelectedSimulation(sim)}
+                  >
+                    <div className="aspect-video relative overflow-hidden rounded-t-lg">
+                      {sim.thumbnail_url ? (
+                        <img 
+                          src={sim.thumbnail_url} 
+                          alt={sim.title}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-simulation/20 flex items-center justify-center">
+                          <Atom className="w-16 h-16 text-simulation/50" />
+                        </div>
+                      )}
+                      {sim.difficulty && (
+                        <span className="absolute top-2 right-2 bg-simulation text-simulation-foreground text-xs px-2 py-1 rounded-full">
+                          {sim.difficulty}
+                        </span>
+                      )}
+                    </div>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-lg flex items-center gap-2">
+                        <Atom className="w-5 h-5 text-simulation" />
+                        {sim.title}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-muted-foreground text-sm line-clamp-2">
+                        {sim.description || 'اكتشف هذه المحاكاة التفاعلية'}
+                      </p>
+                      <span className="inline-block mt-2 text-xs bg-muted px-2 py-1 rounded">
+                        {sim.category}
+                      </span>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
+          )}
         </div>
       </main>
+
+      {/* Simulation Dialog */}
+      <Dialog open={!!selectedSimulation} onOpenChange={() => setSelectedSimulation(null)}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle className="text-2xl flex items-center gap-2">
+              <Atom className="w-6 h-6 text-simulation" />
+              {selectedSimulation?.title}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="aspect-video bg-muted rounded-xl overflow-hidden">
+            {selectedSimulation?.simulation_url ? (
+              <iframe
+                src={selectedSimulation.simulation_url}
+                className="w-full h-full"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+                allowFullScreen
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center flex-col gap-4">
+                <Atom className="w-16 h-16 text-simulation/50" />
+                <p className="text-muted-foreground text-center">
+                  🔬 المحاكاة قيد التطوير
+                </p>
+              </div>
+            )}
+          </div>
+          <p className="text-muted-foreground">{selectedSimulation?.description}</p>
+          {selectedSimulation?.simulation_url && (
+            <Button 
+              variant="outline" 
+              className="w-fit"
+              onClick={() => window.open(selectedSimulation.simulation_url!, '_blank')}
+            >
+              <ExternalLink className="w-4 h-4 ml-2" />
+              فتح في نافذة جديدة
+            </Button>
+          )}
+        </DialogContent>
+      </Dialog>
+
       <Footer />
     </div>
   );

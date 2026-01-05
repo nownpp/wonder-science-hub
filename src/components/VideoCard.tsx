@@ -4,11 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Play } from "lucide-react";
 
 interface VideoCardProps {
-  id: number;
+  id: string | number;
   title: string;
   description: string;
   thumbnail: string;
   duration: string;
+  category?: string;
   onClick?: () => void;
 }
 
