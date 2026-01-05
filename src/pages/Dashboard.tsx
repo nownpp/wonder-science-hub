@@ -2,6 +2,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,10 +18,12 @@ import {
   Play,
   FileText,
   Image as ImageIcon,
-  Loader2
+  Loader2,
+  LogOut
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import {
   Dialog,
   DialogContent,
@@ -56,6 +59,9 @@ interface SimulationType {
 }
 
 const DashboardPage = () => {
+  const navigate = useNavigate();
+  const { user, loading: authLoading, signOut } = useAuth();
+  
   const [videos, setVideos] = useState<VideoType[]>([]);
   const [simulations, setSimulations] = useState<SimulationType[]>([]);
   const [loading, setLoading] = useState(true);
@@ -78,11 +84,20 @@ const DashboardPage = () => {
   const [editingVideo, setEditingVideo] = useState<VideoType | null>(null);
   const [editingSimulation, setEditingSimulation] = useState<SimulationType | null>(null);
 
+  // Redirect to auth if not logged in
+  useEffect(() => {
+    if (!authLoading && !user) {
+      navigate('/auth');
+    }
+  }, [user, authLoading, navigate]);
+
   // Fetch data on mount
   useEffect(() => {
-    fetchVideos();
-    fetchSimulations();
-  }, []);
+    if (user) {
+      fetchVideos();
+      fetchSimulations();
+    }
+  }, [user]);
 
   const fetchVideos = async () => {
     const { data, error } = await supabase
@@ -261,7 +276,7 @@ const DashboardPage = () => {
     }
   };
 
-  if (loading) {
+  if (loading || authLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <Loader2 className="w-12 h-12 animate-spin text-primary" />
@@ -279,12 +294,31 @@ const DashboardPage = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            <h1 className="text-4xl md:text-5xl font-bold mb-4">
-              ⚙️ <span className="text-primary">لوحة</span> التحكم
-            </h1>
+            <div className="flex justify-center items-center gap-4 mb-4">
+              <h1 className="text-4xl md:text-5xl font-bold">
+                ⚙️ <span className="text-primary">لوحة</span> التحكم
+              </h1>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={async () => {
+                  await signOut();
+                  navigate('/auth');
+                }}
+                className="gap-2"
+              >
+                <LogOut className="w-4 h-4" />
+                تسجيل الخروج
+              </Button>
+            </div>
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
               أضف وأدر المحتوى التعليمي للموقع
             </p>
+            {user && (
+              <p className="text-sm text-muted-foreground mt-2">
+                مسجل كـ: {user.email}
+              </p>
+            )}
           </motion.div>
 
           <Tabs defaultValue="videos" className="max-w-4xl mx-auto">
