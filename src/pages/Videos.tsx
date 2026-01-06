@@ -5,7 +5,9 @@ import { motion } from "framer-motion";
 import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Loader2 } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Loader2, Search, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 interface VideoType {
@@ -16,19 +18,22 @@ interface VideoType {
   thumbnail_url: string | null;
   category: string;
   duration: string | null;
+  grade: string | null;
 }
 
 const VideosPage = () => {
   const [videos, setVideos] = useState<VideoType[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState("الكل");
+  const [selectedGrade, setSelectedGrade] = useState("الكل");
+  const [searchQuery, setSearchQuery] = useState("");
   const [selectedVideo, setSelectedVideo] = useState<VideoType | null>(null);
 
   useEffect(() => {
     const fetchVideos = async () => {
       const { data, error } = await supabase
         .from('videos')
-        .select('id, title, description, video_url, thumbnail_url, category, duration')
+        .select('id, title, description, video_url, thumbnail_url, category, duration, grade')
         .order('created_at', { ascending: false });
       
       if (error) {
@@ -47,9 +52,29 @@ const VideosPage = () => {
     return ["الكل", ...Array.from(cats)];
   }, [videos]);
 
-  const filteredVideos = selectedCategory === "الكل" 
-    ? videos 
-    : videos.filter(v => v.category === selectedCategory);
+  const grades = useMemo(() => {
+    const grds = new Set(videos.filter(v => v.grade).map(v => v.grade!));
+    return ["الكل", ...Array.from(grds)];
+  }, [videos]);
+
+  const filteredVideos = useMemo(() => {
+    return videos.filter(v => {
+      const matchesCategory = selectedCategory === "الكل" || v.category === selectedCategory;
+      const matchesGrade = selectedGrade === "الكل" || v.grade === selectedGrade;
+      const matchesSearch = searchQuery === "" || 
+        v.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (v.description && v.description.toLowerCase().includes(searchQuery.toLowerCase()));
+      return matchesCategory && matchesGrade && matchesSearch;
+    });
+  }, [videos, selectedCategory, selectedGrade, searchQuery]);
+
+  const clearFilters = () => {
+    setSelectedCategory("الكل");
+    setSelectedGrade("الكل");
+    setSearchQuery("");
+  };
+
+  const hasActiveFilters = selectedCategory !== "الكل" || selectedGrade !== "الكل" || searchQuery !== "";
 
   const getYouTubeEmbedUrl = (url: string) => {
     const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
@@ -74,7 +99,7 @@ const VideosPage = () => {
       <main className="py-12 px-4">
         <div className="container mx-auto">
           <motion.div
-            className="text-center mb-12"
+            className="text-center mb-8"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
           >
@@ -84,6 +109,65 @@ const VideosPage = () => {
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
               شاهد فيديوهات تعليمية ممتعة عن العلوم واكتشف عالم المعرفة!
             </p>
+          </motion.div>
+
+          {/* Search and Filters */}
+          <motion.div
+            className="bg-card rounded-2xl p-4 md:p-6 mb-8 shadow-sm border"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+          >
+            <div className="flex flex-col md:flex-row gap-4">
+              {/* Search Input */}
+              <div className="relative flex-1">
+                <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                <Input
+                  placeholder="ابحث عن فيديو..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pr-10 text-right"
+                />
+              </div>
+
+              {/* Category Filter */}
+              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                <SelectTrigger className="w-full md:w-48">
+                  <SelectValue placeholder="التصنيف" />
+                </SelectTrigger>
+                <SelectContent>
+                  {categories.map((cat) => (
+                    <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              {/* Grade Filter */}
+              {grades.length > 1 && (
+                <Select value={selectedGrade} onValueChange={setSelectedGrade}>
+                  <SelectTrigger className="w-full md:w-48">
+                    <SelectValue placeholder="الصف الدراسي" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {grades.map((grade) => (
+                      <SelectItem key={grade} value={grade}>{grade}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+
+              {/* Clear Filters */}
+              {hasActiveFilters && (
+                <Button variant="ghost" size="icon" onClick={clearFilters} className="shrink-0">
+                  <X className="w-5 h-5" />
+                </Button>
+              )}
+            </div>
+
+            {/* Results Count */}
+            <div className="mt-4 text-sm text-muted-foreground">
+              عدد النتائج: {filteredVideos.length} فيديو
+            </div>
           </motion.div>
 
           {/* Category Filter */}
