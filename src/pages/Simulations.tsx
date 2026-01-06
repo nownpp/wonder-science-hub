@@ -5,7 +5,9 @@ import { useState, useEffect, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Atom, Loader2, ExternalLink } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Atom, Loader2, ExternalLink, Search, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 interface SimulationType {
@@ -16,19 +18,23 @@ interface SimulationType {
   thumbnail_url: string | null;
   category: string;
   difficulty: string | null;
+  grade: string | null;
 }
 
 const SimulationsPage = () => {
   const [simulations, setSimulations] = useState<SimulationType[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState("الكل");
+  const [selectedDifficulty, setSelectedDifficulty] = useState("الكل");
+  const [selectedGrade, setSelectedGrade] = useState("الكل");
+  const [searchQuery, setSearchQuery] = useState("");
   const [selectedSimulation, setSelectedSimulation] = useState<SimulationType | null>(null);
 
   useEffect(() => {
     const fetchSimulations = async () => {
       const { data, error } = await supabase
         .from('simulations')
-        .select('id, title, description, simulation_url, thumbnail_url, category, difficulty')
+        .select('id, title, description, simulation_url, thumbnail_url, category, difficulty, grade')
         .order('created_at', { ascending: false });
       
       if (error) {
@@ -47,9 +53,36 @@ const SimulationsPage = () => {
     return ["الكل", ...Array.from(cats)];
   }, [simulations]);
 
-  const filteredSimulations = selectedCategory === "الكل" 
-    ? simulations 
-    : simulations.filter(s => s.category === selectedCategory);
+  const difficulties = useMemo(() => {
+    const diffs = new Set(simulations.filter(s => s.difficulty).map(s => s.difficulty!));
+    return ["الكل", ...Array.from(diffs)];
+  }, [simulations]);
+
+  const grades = useMemo(() => {
+    const grds = new Set(simulations.filter(s => s.grade).map(s => s.grade!));
+    return ["الكل", ...Array.from(grds)];
+  }, [simulations]);
+
+  const filteredSimulations = useMemo(() => {
+    return simulations.filter(s => {
+      const matchesCategory = selectedCategory === "الكل" || s.category === selectedCategory;
+      const matchesDifficulty = selectedDifficulty === "الكل" || s.difficulty === selectedDifficulty;
+      const matchesGrade = selectedGrade === "الكل" || s.grade === selectedGrade;
+      const matchesSearch = searchQuery === "" || 
+        s.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (s.description && s.description.toLowerCase().includes(searchQuery.toLowerCase()));
+      return matchesCategory && matchesDifficulty && matchesGrade && matchesSearch;
+    });
+  }, [simulations, selectedCategory, selectedDifficulty, selectedGrade, searchQuery]);
+
+  const clearFilters = () => {
+    setSelectedCategory("الكل");
+    setSelectedDifficulty("الكل");
+    setSelectedGrade("الكل");
+    setSearchQuery("");
+  };
+
+  const hasActiveFilters = selectedCategory !== "الكل" || selectedDifficulty !== "الكل" || selectedGrade !== "الكل" || searchQuery !== "";
 
   if (loading) {
     return (
@@ -65,7 +98,7 @@ const SimulationsPage = () => {
       <main className="py-12 px-4">
         <div className="container mx-auto">
           <motion.div
-            className="text-center mb-12"
+            className="text-center mb-8"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
           >
@@ -77,26 +110,78 @@ const SimulationsPage = () => {
             </p>
           </motion.div>
 
-          {/* Category Filter */}
-          {categories.length > 1 && (
-            <motion.div
-              className="flex flex-wrap justify-center gap-3 mb-8"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-            >
-              {categories.map((category) => (
-                <Button
-                  key={category}
-                  variant={selectedCategory === category ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setSelectedCategory(category)}
-                >
-                  {category}
+          {/* Search and Filters */}
+          <motion.div
+            className="bg-card rounded-2xl p-4 md:p-6 mb-8 shadow-sm border"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+          >
+            <div className="flex flex-col md:flex-row gap-4">
+              {/* Search Input */}
+              <div className="relative flex-1">
+                <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                <Input
+                  placeholder="ابحث عن محاكاة..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pr-10 text-right"
+                />
+              </div>
+
+              {/* Category Filter */}
+              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                <SelectTrigger className="w-full md:w-40">
+                  <SelectValue placeholder="التصنيف" />
+                </SelectTrigger>
+                <SelectContent>
+                  {categories.map((cat) => (
+                    <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              {/* Difficulty Filter */}
+              {difficulties.length > 1 && (
+                <Select value={selectedDifficulty} onValueChange={setSelectedDifficulty}>
+                  <SelectTrigger className="w-full md:w-36">
+                    <SelectValue placeholder="الصعوبة" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {difficulties.map((diff) => (
+                      <SelectItem key={diff} value={diff}>{diff}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+
+              {/* Grade Filter */}
+              {grades.length > 1 && (
+                <Select value={selectedGrade} onValueChange={setSelectedGrade}>
+                  <SelectTrigger className="w-full md:w-40">
+                    <SelectValue placeholder="الصف" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {grades.map((grade) => (
+                      <SelectItem key={grade} value={grade}>{grade}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+
+              {/* Clear Filters */}
+              {hasActiveFilters && (
+                <Button variant="ghost" size="icon" onClick={clearFilters} className="shrink-0">
+                  <X className="w-5 h-5" />
                 </Button>
-              ))}
-            </motion.div>
-          )}
+              )}
+            </div>
+
+            {/* Results Count */}
+            <div className="mt-4 text-sm text-muted-foreground">
+              عدد النتائج: {filteredSimulations.length} محاكاة
+            </div>
+          </motion.div>
 
           {/* Simulations Grid */}
           {filteredSimulations.length === 0 ? (
