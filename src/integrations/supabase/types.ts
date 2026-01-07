@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          full_name: string | null
+          grade: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          full_name?: string | null
+          grade?: string | null
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          full_name?: string | null
+          grade?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       simulations: {
         Row: {
           category: string
@@ -56,6 +83,45 @@ export type Database = {
           thumbnail_url?: string | null
           title?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      student_progress: {
+        Row: {
+          completed: boolean | null
+          content_id: string
+          content_type: string
+          created_at: string
+          id: string
+          last_accessed_at: string | null
+          progress_percentage: number | null
+          time_spent_seconds: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completed?: boolean | null
+          content_id: string
+          content_type: string
+          created_at?: string
+          id?: string
+          last_accessed_at?: string | null
+          progress_percentage?: number | null
+          time_spent_seconds?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completed?: boolean | null
+          content_id?: string
+          content_type?: string
+          created_at?: string
+          id?: string
+          last_accessed_at?: string | null
+          progress_percentage?: number | null
+          time_spent_seconds?: number | null
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }

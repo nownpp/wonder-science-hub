@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { Link, useLocation } from "react-router-dom";
-import { Home, Play, Atom, LayoutDashboard, Menu, X } from "lucide-react";
+import { Home, Play, Atom, LayoutDashboard, Menu, X, GraduationCap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import atomIcon from "@/assets/atom-icon.png";
@@ -9,7 +9,6 @@ const navItems = [
   { path: "/", label: "الرئيسية", icon: Home },
   { path: "/videos", label: "الفيديوهات", icon: Play },
   { path: "/simulations", label: "المحاكاة", icon: Atom },
-  { path: "/dashboard", label: "لوحة التحكم", icon: LayoutDashboard },
 ];
 
 const Navbar = () => {
@@ -48,6 +47,18 @@ const Navbar = () => {
                 </Button>
               </Link>
             ))}
+            
+            {/* Student Login Button */}
+            <Link to="/student-auth">
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground"
+              >
+                <GraduationCap className="w-4 h-4" />
+                دخول الطلاب
+              </Button>
+            </Link>
           </div>
 
           {/* Mobile menu button */}
@@ -81,6 +92,17 @@ const Navbar = () => {
                   </Button>
                 </Link>
               ))}
+              
+              {/* Student Login Button - Mobile */}
+              <Link to="/student-auth" onClick={() => setIsOpen(false)}>
+                <Button
+                  variant="outline"
+                  className="w-full justify-start gap-2 border-primary text-primary"
+                >
+                  <GraduationCap className="w-4 h-4" />
+                  دخول الطلاب
+                </Button>
+              </Link>
             </div>
           </motion.div>
         )}

@@ -7,6 +7,7 @@ interface AuthContextType {
   session: Session | null;
   loading: boolean;
   signUp: (email: string, password: string) => Promise<{ error: Error | null }>;
+  signUpStudent: (email: string, password: string, fullName: string, grade: string) => Promise<{ error: Error | null }>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
 }
@@ -51,6 +52,34 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return { error };
   };
 
+  const signUpStudent = async (email: string, password: string, fullName: string, grade: string) => {
+    const redirectUrl = `${window.location.origin}/student-dashboard`;
+    
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: redirectUrl,
+        data: {
+          full_name: fullName,
+          grade: grade
+        }
+      }
+    });
+
+    // Update profile with grade if signup successful
+    if (!error && data.user) {
+      setTimeout(async () => {
+        await supabase
+          .from('profiles')
+          .update({ grade: grade })
+          .eq('id', data.user!.id);
+      }, 0);
+    }
+
+    return { error };
+  };
+
   const signIn = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({
       email,
@@ -64,7 +93,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, signUp, signIn, signOut }}>
+    <AuthContext.Provider value={{ user, session, loading, signUp, signUpStudent, signIn, signOut }}>
       {children}
     </AuthContext.Provider>
   );
