@@ -59,6 +59,18 @@ const Navbar = () => {
                 دخول الطلاب
               </Button>
             </Link>
+            
+            {/* Teacher Login Button */}
+            <Link to="/auth">
+              <Button
+                variant="default"
+                size="sm"
+                className="gap-2"
+              >
+                <LayoutDashboard className="w-4 h-4" />
+                دخول المعلمين
+              </Button>
+            </Link>
           </div>
 
           {/* Mobile menu button */}
@@ -101,6 +113,17 @@ const Navbar = () => {
                 >
                   <GraduationCap className="w-4 h-4" />
                   دخول الطلاب
+                </Button>
+              </Link>
+              
+              {/* Teacher Login Button - Mobile */}
+              <Link to="/auth" onClick={() => setIsOpen(false)}>
+                <Button
+                  variant="default"
+                  className="w-full justify-start gap-2"
+                >
+                  <LayoutDashboard className="w-4 h-4" />
+                  دخول المعلمين
                 </Button>
               </Link>
             </div>
