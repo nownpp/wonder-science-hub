@@ -83,19 +83,23 @@ const StudentDashboard = () => {
       setProgress(progressData);
     }
 
-    // Fetch videos
+    // Fetch videos filtered by student's grade
+    const studentGrade = profileData?.grade || 'الصف الثالث';
+    
     const { data: videosData } = await supabase
       .from('videos')
-      .select('id, title, category, thumbnail_url');
+      .select('id, title, category, thumbnail_url, grade')
+      .eq('grade', studentGrade);
     
     if (videosData) {
       setVideos(videosData);
     }
 
-    // Fetch simulations
+    // Fetch simulations filtered by student's grade
     const { data: simulationsData } = await supabase
       .from('simulations')
-      .select('id, title, category, thumbnail_url');
+      .select('id, title, category, thumbnail_url, grade')
+      .eq('grade', studentGrade);
     
     if (simulationsData) {
       setSimulations(simulationsData);
@@ -223,10 +227,10 @@ const StudentDashboard = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <BookOpen className="w-5 h-5 text-primary" />
-              تقدمك في التعلم
+              تقدمك في التعلم - {profile?.grade || 'الصف الثالث'}
             </CardTitle>
             <CardDescription>
-              أكملت {getCompletedCount('video') + getCompletedCount('simulation')} من {videos.length + simulations.length} درس
+              أكملت {getCompletedCount('video') + getCompletedCount('simulation')} من {videos.length + simulations.length} درس في صفك
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -294,7 +298,7 @@ const StudentDashboard = () => {
               {videos.length === 0 && (
                 <div className="col-span-full text-center py-12 text-muted-foreground">
                   <Video className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                  <p>لا توجد فيديوهات حالياً</p>
+                  <p>لا توجد فيديوهات لـ {profile?.grade || 'صفك'} حالياً</p>
                 </div>
               )}
             </div>
@@ -341,7 +345,7 @@ const StudentDashboard = () => {
               {simulations.length === 0 && (
                 <div className="col-span-full text-center py-12 text-muted-foreground">
                   <Atom className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                  <p>لا توجد محاكاة حالياً</p>
+                  <p>لا توجد محاكاة لـ {profile?.grade || 'صفك'} حالياً</p>
                 </div>
               )}
             </div>
