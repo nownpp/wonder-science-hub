@@ -30,6 +30,24 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+const grades = [
+  "الصف الأول",
+  "الصف الثاني",
+  "الصف الثالث",
+  "الصف الرابع",
+  "الصف الخامس",
+  "الصف السادس",
+];
+
+const difficulties = ["سهل", "متوسط", "صعب"];
 
 interface VideoType {
   id: string;
@@ -71,6 +89,8 @@ const DashboardPage = () => {
   const [newVideoCategory, setNewVideoCategory] = useState("");
   const [newVideoUrl, setNewVideoUrl] = useState("");
   const [newVideoThumbnail, setNewVideoThumbnail] = useState<string | null>(null);
+  const [newVideoGrade, setNewVideoGrade] = useState("الصف الثالث");
+  const [newVideoDuration, setNewVideoDuration] = useState("");
   const [addingVideo, setAddingVideo] = useState(false);
   
   // Simulation form state
@@ -79,6 +99,8 @@ const DashboardPage = () => {
   const [newSimCategory, setNewSimCategory] = useState("");
   const [newSimUrl, setNewSimUrl] = useState("");
   const [newSimThumbnail, setNewSimThumbnail] = useState<string | null>(null);
+  const [newSimGrade, setNewSimGrade] = useState("الصف الثالث");
+  const [newSimDifficulty, setNewSimDifficulty] = useState("سهل");
   const [addingSimulation, setAddingSimulation] = useState(false);
   
   // Edit dialog state
@@ -149,6 +171,8 @@ const DashboardPage = () => {
         category: newVideoCategory || 'عام',
         video_url: newVideoUrl,
         thumbnail_url: newVideoThumbnail,
+        grade: newVideoGrade,
+        duration: newVideoDuration || null,
       })
       .select()
       .single();
@@ -163,6 +187,8 @@ const DashboardPage = () => {
       setNewVideoCategory("");
       setNewVideoUrl("");
       setNewVideoThumbnail(null);
+      setNewVideoGrade("الصف الثالث");
+      setNewVideoDuration("");
       toast.success("تمت إضافة الفيديو بنجاح!");
     }
     
@@ -195,6 +221,8 @@ const DashboardPage = () => {
         category: editingVideo.category,
         video_url: editingVideo.video_url,
         thumbnail_url: editingVideo.thumbnail_url,
+        grade: editingVideo.grade,
+        duration: editingVideo.duration,
       })
       .eq('id', editingVideo.id);
     
@@ -224,6 +252,8 @@ const DashboardPage = () => {
         category: newSimCategory || 'عام',
         simulation_url: newSimUrl || null,
         thumbnail_url: newSimThumbnail,
+        grade: newSimGrade,
+        difficulty: newSimDifficulty,
       })
       .select()
       .single();
@@ -238,6 +268,8 @@ const DashboardPage = () => {
       setNewSimCategory("");
       setNewSimUrl("");
       setNewSimThumbnail(null);
+      setNewSimGrade("الصف الثالث");
+      setNewSimDifficulty("سهل");
       toast.success("تمت إضافة المحاكاة بنجاح!");
     }
     
@@ -270,6 +302,8 @@ const DashboardPage = () => {
         category: editingSimulation.category,
         simulation_url: editingSimulation.simulation_url,
         thumbnail_url: editingSimulation.thumbnail_url,
+        grade: editingSimulation.grade,
+        difficulty: editingSimulation.difficulty,
       })
       .eq('id', editingSimulation.id);
     
@@ -366,6 +400,29 @@ const DashboardPage = () => {
                           placeholder="مثال: الطبيعة"
                           value={newVideoCategory}
                           onChange={(e) => setNewVideoCategory(e.target.value)}
+                        />
+                      </div>
+                    </div>
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <div>
+                        <label className="block text-sm font-medium mb-2">الصف الدراسي</label>
+                        <Select value={newVideoGrade} onValueChange={setNewVideoGrade}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="اختر الصف" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {grades.map((grade) => (
+                              <SelectItem key={grade} value={grade}>{grade}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">المدة</label>
+                        <Input
+                          placeholder="مثال: 10:30"
+                          value={newVideoDuration}
+                          onChange={(e) => setNewVideoDuration(e.target.value)}
                         />
                       </div>
                     </div>
@@ -497,6 +554,34 @@ const DashboardPage = () => {
                           value={newSimCategory}
                           onChange={(e) => setNewSimCategory(e.target.value)}
                         />
+                      </div>
+                    </div>
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <div>
+                        <label className="block text-sm font-medium mb-2">الصف الدراسي</label>
+                        <Select value={newSimGrade} onValueChange={setNewSimGrade}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="اختر الصف" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {grades.map((grade) => (
+                              <SelectItem key={grade} value={grade}>{grade}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">مستوى الصعوبة</label>
+                        <Select value={newSimDifficulty} onValueChange={setNewSimDifficulty}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="اختر الصعوبة" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {difficulties.map((diff) => (
+                              <SelectItem key={diff} value={diff}>{diff}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </div>
                     </div>
                     <div>
@@ -633,6 +718,32 @@ const DashboardPage = () => {
                   onChange={(e) => setEditingVideo({...editingVideo, video_url: e.target.value})}
                 />
               </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <label className="block text-sm font-medium mb-2">الصف الدراسي</label>
+                  <Select 
+                    value={editingVideo.grade || 'الصف الثالث'} 
+                    onValueChange={(value) => setEditingVideo({...editingVideo, grade: value})}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="اختر الصف" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {grades.map((grade) => (
+                        <SelectItem key={grade} value={grade}>{grade}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">المدة</label>
+                  <Input
+                    value={editingVideo.duration || ''}
+                    onChange={(e) => setEditingVideo({...editingVideo, duration: e.target.value})}
+                    placeholder="مثال: 10:30"
+                  />
+                </div>
+              </div>
               <div>
                 <label className="block text-sm font-medium mb-2">الوصف</label>
                 <Textarea
@@ -686,6 +797,40 @@ const DashboardPage = () => {
                   value={editingSimulation.simulation_url || ''}
                   onChange={(e) => setEditingSimulation({...editingSimulation, simulation_url: e.target.value})}
                 />
+              </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <label className="block text-sm font-medium mb-2">الصف الدراسي</label>
+                  <Select 
+                    value={editingSimulation.grade || 'الصف الثالث'} 
+                    onValueChange={(value) => setEditingSimulation({...editingSimulation, grade: value})}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="اختر الصف" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {grades.map((grade) => (
+                        <SelectItem key={grade} value={grade}>{grade}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">مستوى الصعوبة</label>
+                  <Select 
+                    value={editingSimulation.difficulty || 'سهل'} 
+                    onValueChange={(value) => setEditingSimulation({...editingSimulation, difficulty: value})}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="اختر الصعوبة" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {difficulties.map((diff) => (
+                        <SelectItem key={diff} value={diff}>{diff}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
               <div>
                 <label className="block text-sm font-medium mb-2">الوصف</label>
