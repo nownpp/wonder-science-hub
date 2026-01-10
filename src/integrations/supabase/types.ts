@@ -49,6 +49,7 @@ export type Database = {
           description: string | null
           difficulty: string | null
           grade: string | null
+          html_code: string | null
           id: string
           plays_count: number | null
           simulation_url: string | null
@@ -63,6 +64,7 @@ export type Database = {
           description?: string | null
           difficulty?: string | null
           grade?: string | null
+          html_code?: string | null
           id?: string
           plays_count?: number | null
           simulation_url?: string | null
@@ -77,6 +79,7 @@ export type Database = {
           description?: string | null
           difficulty?: string | null
           grade?: string | null
+          html_code?: string | null
           id?: string
           plays_count?: number | null
           simulation_url?: string | null
