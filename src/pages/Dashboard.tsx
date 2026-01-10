@@ -1,6 +1,7 @@
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ThumbnailUpload from "@/components/ThumbnailUpload";
+import HtmlCodeEditor from "@/components/HtmlCodeEditor";
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
@@ -73,6 +74,7 @@ interface SimulationType {
   difficulty: string | null;
   plays_count: number | null;
   created_at: string;
+  html_code: string | null;
 }
 
 const DashboardPage = () => {
@@ -101,6 +103,7 @@ const DashboardPage = () => {
   const [newSimThumbnail, setNewSimThumbnail] = useState<string | null>(null);
   const [newSimGrade, setNewSimGrade] = useState("الصف الثالث");
   const [newSimDifficulty, setNewSimDifficulty] = useState("سهل");
+  const [newSimHtmlCode, setNewSimHtmlCode] = useState<string | null>(null);
   const [addingSimulation, setAddingSimulation] = useState(false);
   
   // Edit dialog state
@@ -254,6 +257,7 @@ const DashboardPage = () => {
         thumbnail_url: newSimThumbnail,
         grade: newSimGrade,
         difficulty: newSimDifficulty,
+        html_code: newSimHtmlCode,
       })
       .select()
       .single();
@@ -270,6 +274,7 @@ const DashboardPage = () => {
       setNewSimThumbnail(null);
       setNewSimGrade("الصف الثالث");
       setNewSimDifficulty("سهل");
+      setNewSimHtmlCode(null);
       toast.success("تمت إضافة المحاكاة بنجاح!");
     }
     
@@ -304,6 +309,7 @@ const DashboardPage = () => {
         thumbnail_url: editingSimulation.thumbnail_url,
         grade: editingSimulation.grade,
         difficulty: editingSimulation.difficulty,
+        html_code: editingSimulation.html_code,
       })
       .eq('id', editingSimulation.id);
     
@@ -609,6 +615,16 @@ const DashboardPage = () => {
                         folder="simulations"
                       />
                     </div>
+                    <div className="p-4 bg-muted/50 rounded-xl border-2 border-dashed border-simulation/30">
+                      <HtmlCodeEditor
+                        value={newSimHtmlCode}
+                        onChange={setNewSimHtmlCode}
+                        label="كود HTML للمحاكاة (اختياري)"
+                      />
+                      <p className="text-xs text-muted-foreground mt-2">
+                        💡 يمكنك إضافة كود HTML كامل للمحاكاة التفاعلية أو استخدام رابط خارجي
+                      </p>
+                    </div>
                     <Button 
                       variant="simulation" 
                       className="w-full"
@@ -846,6 +862,13 @@ const DashboardPage = () => {
                   value={editingSimulation.thumbnail_url}
                   onChange={(url) => setEditingSimulation({...editingSimulation, thumbnail_url: url})}
                   folder="simulations"
+                />
+              </div>
+              <div className="p-3 bg-muted/50 rounded-lg border border-simulation/30">
+                <HtmlCodeEditor
+                  value={editingSimulation.html_code}
+                  onChange={(code) => setEditingSimulation({...editingSimulation, html_code: code})}
+                  label="كود HTML للمحاكاة"
                 />
               </div>
             </div>

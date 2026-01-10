@@ -19,6 +19,7 @@ interface SimulationType {
   category: string;
   difficulty: string | null;
   grade: string | null;
+  html_code: string | null;
 }
 
 const SimulationsPage = () => {
@@ -34,7 +35,7 @@ const SimulationsPage = () => {
     const fetchSimulations = async () => {
       const { data, error } = await supabase
         .from('simulations')
-        .select('id, title, description, simulation_url, thumbnail_url, category, difficulty, grade')
+        .select('id, title, description, simulation_url, thumbnail_url, category, difficulty, grade, html_code')
         .order('created_at', { ascending: false });
       
       if (error) {
@@ -254,7 +255,14 @@ const SimulationsPage = () => {
             </DialogTitle>
           </DialogHeader>
           <div className="aspect-video bg-muted rounded-xl overflow-hidden">
-            {selectedSimulation?.simulation_url ? (
+            {selectedSimulation?.html_code ? (
+              <iframe
+                srcDoc={selectedSimulation.html_code}
+                className="w-full h-full"
+                sandbox="allow-scripts allow-same-origin allow-forms"
+                title={selectedSimulation.title}
+              />
+            ) : selectedSimulation?.simulation_url ? (
               <iframe
                 src={selectedSimulation.simulation_url}
                 className="w-full h-full"
@@ -271,11 +279,22 @@ const SimulationsPage = () => {
             )}
           </div>
           <p className="text-muted-foreground">{selectedSimulation?.description}</p>
-          {selectedSimulation?.simulation_url && (
+          {(selectedSimulation?.simulation_url || selectedSimulation?.html_code) && (
             <Button 
               variant="outline" 
               className="w-fit"
-              onClick={() => window.open(selectedSimulation.simulation_url!, '_blank')}
+              onClick={() => {
+                if (selectedSimulation.html_code) {
+                  // Open HTML code in a new window
+                  const newWindow = window.open('', '_blank');
+                  if (newWindow) {
+                    newWindow.document.write(selectedSimulation.html_code);
+                    newWindow.document.close();
+                  }
+                } else if (selectedSimulation.simulation_url) {
+                  window.open(selectedSimulation.simulation_url, '_blank');
+                }
+              }}
             >
               <ExternalLink className="w-4 h-4 ml-2" />
               فتح في نافذة جديدة
