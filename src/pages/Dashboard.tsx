@@ -2,6 +2,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ThumbnailUpload from "@/components/ThumbnailUpload";
 import HtmlCodeEditor from "@/components/HtmlCodeEditor";
+import SimulationTemplates from "@/components/SimulationTemplates";
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
@@ -615,14 +616,28 @@ const DashboardPage = () => {
                         folder="simulations"
                       />
                     </div>
-                    <div className="p-4 bg-muted/50 rounded-xl border-2 border-dashed border-simulation/30">
-                      <HtmlCodeEditor
-                        value={newSimHtmlCode}
-                        onChange={setNewSimHtmlCode}
-                        label="كود HTML للمحاكاة (اختياري)"
-                      />
-                      <p className="text-xs text-muted-foreground mt-2">
-                        💡 يمكنك إضافة كود HTML كامل للمحاكاة التفاعلية أو استخدام رابط خارجي
+                    <div className="p-4 bg-muted/50 rounded-xl border-2 border-dashed border-simulation/30 space-y-4">
+                      <div className="flex flex-col gap-3">
+                        <label className="block text-sm font-medium">كود HTML للمحاكاة</label>
+                        <div className="flex gap-2 flex-wrap">
+                          <SimulationTemplates 
+                            onSelectTemplate={(htmlCode, title, description, category, difficulty) => {
+                              setNewSimHtmlCode(htmlCode);
+                              if (!newSimTitle) setNewSimTitle(title);
+                              if (!newSimDescription) setNewSimDescription(description);
+                              if (!newSimCategory) setNewSimCategory(category);
+                              setNewSimDifficulty(difficulty);
+                            }}
+                          />
+                          <HtmlCodeEditor
+                            value={newSimHtmlCode}
+                            onChange={setNewSimHtmlCode}
+                            label=""
+                          />
+                        </div>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        💡 اختر من مكتبة القوالب الجاهزة أو أضف كود HTML مخصص
                       </p>
                     </div>
                     <Button 
