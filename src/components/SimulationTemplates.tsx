@@ -1854,6 +1854,782 @@ const templates: Template[] = [
   </div>
 </body>
 </html>`
+  },
+  {
+    id: "sound-waves",
+    name: "موجات الصوت",
+    description: "محاكاة موجات الصوت مع التحكم في التردد والسعة والطول الموجي",
+    category: "الفيزياء",
+    icon: <Waves className="w-6 h-6" />,
+    difficulty: "متوسط",
+    htmlCode: `<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>موجات الصوت</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', Tahoma, sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+      color: white;
+    }
+    h1 { margin-bottom: 20px; }
+    .container { display: flex; flex-direction: column; align-items: center; gap: 20px; }
+    canvas {
+      background: linear-gradient(180deg, #0f0f23 0%, #1a1a3e 100%);
+      border-radius: 15px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+    }
+    .controls { display: flex; gap: 30px; flex-wrap: wrap; justify-content: center; }
+    .control-group { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+    label { font-size: 0.9rem; opacity: 0.9; }
+    input[type="range"] { width: 150px; cursor: pointer; }
+    .value { background: rgba(255,255,255,0.1); padding: 4px 12px; border-radius: 20px; font-size: 0.85rem; }
+    .info { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; margin-top: 10px; }
+    .info-box { background: rgba(0,200,255,0.1); padding: 10px 20px; border-radius: 10px; text-align: center; }
+    .info-box h3 { font-size: 0.8rem; opacity: 0.7; margin-bottom: 5px; }
+    .info-box p { font-size: 1.1rem; color: #00d4ff; }
+  </style>
+</head>
+<body>
+  <h1>🔊 موجات الصوت</h1>
+  <div class="container">
+    <canvas id="canvas" width="600" height="250"></canvas>
+    <div class="controls">
+      <div class="control-group">
+        <label>التردد (Hz)</label>
+        <input type="range" id="frequency" min="20" max="2000" value="440">
+        <span class="value" id="freqValue">440 Hz</span>
+      </div>
+      <div class="control-group">
+        <label>السعة</label>
+        <input type="range" id="amplitude" min="10" max="80" value="50">
+        <span class="value" id="ampValue">50</span>
+      </div>
+      <div class="control-group">
+        <label>سرعة العرض</label>
+        <input type="range" id="speed" min="1" max="10" value="5">
+        <span class="value" id="speedValue">5</span>
+      </div>
+    </div>
+    <div class="info">
+      <div class="info-box">
+        <h3>الطول الموجي</h3>
+        <p id="wavelength">0.78 م</p>
+      </div>
+      <div class="info-box">
+        <h3>نوع الصوت</h3>
+        <p id="soundType">صوت مسموع</p>
+      </div>
+      <div class="info-box">
+        <h3>الدورة الزمنية</h3>
+        <p id="period">2.27 مللي ث</p>
+      </div>
+    </div>
+  </div>
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    let frequency = 440, amplitude = 50, speed = 5, time = 0;
+    const speedOfSound = 343;
+    
+    function updateInfo() {
+      const wavelength = (speedOfSound / frequency).toFixed(2);
+      const period = (1000 / frequency).toFixed(2);
+      document.getElementById('wavelength').textContent = wavelength + ' م';
+      document.getElementById('period').textContent = period + ' مللي ث';
+      let type = 'صوت مسموع';
+      if (frequency < 20) type = 'تحت سمعي';
+      else if (frequency < 200) type = 'صوت منخفض';
+      else if (frequency > 2000) type = 'صوت حاد';
+      document.getElementById('soundType').textContent = type;
+    }
+    
+    document.getElementById('frequency').addEventListener('input', (e) => {
+      frequency = parseInt(e.target.value);
+      document.getElementById('freqValue').textContent = frequency + ' Hz';
+      updateInfo();
+    });
+    document.getElementById('amplitude').addEventListener('input', (e) => {
+      amplitude = parseInt(e.target.value);
+      document.getElementById('ampValue').textContent = amplitude;
+    });
+    document.getElementById('speed').addEventListener('input', (e) => {
+      speed = parseInt(e.target.value);
+      document.getElementById('speedValue').textContent = speed;
+    });
+    
+    function draw() {
+      ctx.fillStyle = 'rgba(15, 15, 35, 0.3)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+      ctx.beginPath();
+      ctx.moveTo(0, canvas.height/2);
+      ctx.lineTo(canvas.width, canvas.height/2);
+      ctx.stroke();
+      
+      ctx.beginPath();
+      ctx.shadowBlur = 15;
+      ctx.shadowColor = '#00d4ff';
+      for (let x = 0; x < canvas.width; x++) {
+        const y = canvas.height/2 + amplitude * Math.sin((x * frequency/1000) + time * speed * 0.05);
+        if (x === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.strokeStyle = '#00d4ff';
+      ctx.lineWidth = 3;
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+      
+      // Draw particles
+      for (let i = 0; i < 20; i++) {
+        const px = 30 + i * 28;
+        const py = canvas.height/2 + amplitude * 0.8 * Math.sin((px * frequency/1000) + time * speed * 0.05);
+        ctx.beginPath();
+        ctx.arc(px, py, 4, 0, Math.PI * 2);
+        ctx.fillStyle = '#ffd700';
+        ctx.fill();
+      }
+      
+      time++;
+      requestAnimationFrame(draw);
+    }
+    
+    updateInfo();
+    draw();
+  </script>
+</body>
+</html>`
+  },
+  {
+    id: "heat-transfer",
+    name: "انتقال الحرارة",
+    description: "محاكاة طرق انتقال الحرارة: التوصيل، الحمل، الإشعاع",
+    category: "الفيزياء",
+    icon: <Flame className="w-6 h-6" />,
+    difficulty: "متوسط",
+    htmlCode: `<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>انتقال الحرارة</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', Tahoma, sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #2d1f3d 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+      color: white;
+    }
+    h1 { margin-bottom: 15px; }
+    .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+    .tab {
+      padding: 10px 25px;
+      background: rgba(255,255,255,0.1);
+      border: none;
+      color: white;
+      border-radius: 25px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .tab.active { background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%); }
+    .tab:hover { transform: translateY(-2px); }
+    canvas {
+      background: linear-gradient(180deg, #0f0f23 0%, #1a1a3e 100%);
+      border-radius: 15px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+    }
+    .description {
+      margin-top: 20px;
+      background: rgba(255,255,255,0.1);
+      padding: 15px 25px;
+      border-radius: 15px;
+      max-width: 500px;
+      text-align: center;
+    }
+    .temp-display {
+      display: flex;
+      gap: 30px;
+      margin-top: 15px;
+    }
+    .temp-box {
+      background: rgba(0,0,0,0.3);
+      padding: 10px 20px;
+      border-radius: 10px;
+      text-align: center;
+    }
+    .temp-box.hot { border: 2px solid #ff6b35; }
+    .temp-box.cold { border: 2px solid #4da6ff; }
+  </style>
+</head>
+<body>
+  <h1>🌡️ انتقال الحرارة</h1>
+  <div class="tabs">
+    <button class="tab active" onclick="setMode('conduction')">التوصيل</button>
+    <button class="tab" onclick="setMode('convection')">الحمل</button>
+    <button class="tab" onclick="setMode('radiation')">الإشعاع</button>
+  </div>
+  <canvas id="canvas" width="500" height="300"></canvas>
+  <div class="temp-display">
+    <div class="temp-box hot">🔴 الساخن: <span id="hotTemp">100</span>°C</div>
+    <div class="temp-box cold">🔵 البارد: <span id="coldTemp">20</span>°C</div>
+  </div>
+  <div class="description" id="desc">التوصيل: انتقال الحرارة عبر المادة من جزيء لآخر بالتلامس المباشر</div>
+  
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    let mode = 'conduction';
+    let particles = [];
+    let time = 0;
+    
+    const descriptions = {
+      conduction: 'التوصيل: انتقال الحرارة عبر المادة من جزيء لآخر بالتلامس المباشر',
+      convection: 'الحمل: انتقال الحرارة عبر حركة السوائل والغازات',
+      radiation: 'الإشعاع: انتقال الحرارة عبر الموجات الكهرومغناطيسية دون وسيط'
+    };
+    
+    function setMode(m) {
+      mode = m;
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      event.target.classList.add('active');
+      document.getElementById('desc').textContent = descriptions[m];
+      initParticles();
+    }
+    
+    function initParticles() {
+      particles = [];
+      if (mode === 'conduction') {
+        for (let i = 0; i < 50; i++) {
+          particles.push({ x: 50 + i * 8, y: 150, temp: i < 25 ? 100 : 20 });
+        }
+      } else if (mode === 'convection') {
+        for (let i = 0; i < 60; i++) {
+          particles.push({
+            x: 150 + Math.random() * 200,
+            y: 50 + Math.random() * 200,
+            vy: 0,
+            temp: 20 + Math.random() * 80
+          });
+        }
+      } else {
+        for (let i = 0; i < 15; i++) {
+          particles.push({ x: 60, y: 80 + i * 10, progress: Math.random() });
+        }
+      }
+    }
+    
+    function getColor(temp) {
+      const ratio = (temp - 20) / 80;
+      const r = Math.floor(255 * ratio);
+      const b = Math.floor(255 * (1 - ratio));
+      return 'rgb(' + r + ', 50, ' + b + ')';
+    }
+    
+    function draw() {
+      ctx.clearRect(0, 0, 500, 300);
+      
+      if (mode === 'conduction') {
+        ctx.fillStyle = '#333';
+        ctx.fillRect(40, 120, 420, 60);
+        ctx.fillStyle = '#ff6b35';
+        ctx.fillRect(20, 110, 30, 80);
+        
+        particles.forEach((p, i) => {
+          if (i > 0 && i < particles.length - 1) {
+            const diff = (particles[i-1].temp + particles[i+1].temp) / 2 - p.temp;
+            p.temp += diff * 0.01;
+          }
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, 8, 0, Math.PI * 2);
+          ctx.fillStyle = getColor(p.temp);
+          ctx.fill();
+        });
+        
+        document.getElementById('hotTemp').textContent = Math.round(particles[0].temp);
+        document.getElementById('coldTemp').textContent = Math.round(particles[particles.length-1].temp);
+        
+      } else if (mode === 'convection') {
+        ctx.fillStyle = '#333';
+        ctx.fillRect(140, 40, 220, 220);
+        ctx.fillStyle = '#ff6b35';
+        ctx.fillRect(200, 250, 100, 20);
+        
+        particles.forEach(p => {
+          const heatDist = Math.abs(p.x - 250);
+          if (p.y > 200 && heatDist < 60) {
+            p.temp = Math.min(100, p.temp + 0.5);
+            p.vy = -1.5;
+          } else {
+            p.temp = Math.max(20, p.temp - 0.1);
+            p.vy += 0.02;
+          }
+          if (p.y < 50 || p.y > 240) p.vy *= -0.5;
+          p.y += p.vy;
+          p.y = Math.max(50, Math.min(240, p.y));
+          
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, 5, 0, Math.PI * 2);
+          ctx.fillStyle = getColor(p.temp);
+          ctx.fill();
+        });
+        
+      } else {
+        ctx.fillStyle = '#ff6b35';
+        ctx.beginPath();
+        ctx.arc(60, 150, 40, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 30;
+        ctx.shadowColor = '#ff6b35';
+        ctx.fill();
+        ctx.shadowBlur = 0;
+        
+        ctx.fillStyle = '#4da6ff';
+        ctx.fillRect(400, 100, 60, 100);
+        
+        particles.forEach(p => {
+          p.progress += 0.01;
+          if (p.progress > 1) p.progress = 0;
+          const x = 100 + p.progress * 300;
+          ctx.beginPath();
+          ctx.arc(x, p.y, 4, 0, Math.PI * 2);
+          ctx.fillStyle = 'rgba(255, 200, 0, ' + (1 - p.progress * 0.5) + ')';
+          ctx.fill();
+        });
+      }
+      
+      time++;
+      requestAnimationFrame(draw);
+    }
+    
+    initParticles();
+    draw();
+  </script>
+</body>
+</html>`
+  },
+  {
+    id: "pressure",
+    name: "الضغط",
+    description: "محاكاة الضغط في الغازات والسوائل مع قانون باسكال",
+    category: "الفيزياء",
+    icon: <Wind className="w-6 h-6" />,
+    difficulty: "متوسط",
+    htmlCode: `<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>الضغط</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', Tahoma, sans-serif;
+      background: linear-gradient(135deg, #0c2461 0%, #1e3799 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+      color: white;
+    }
+    h1 { margin-bottom: 20px; }
+    .container { display: flex; flex-direction: column; align-items: center; gap: 20px; }
+    canvas {
+      background: linear-gradient(180deg, #0a1628 0%, #152642 100%);
+      border-radius: 15px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+    }
+    .controls { display: flex; gap: 30px; flex-wrap: wrap; justify-content: center; }
+    .control-group { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+    label { font-size: 0.9rem; opacity: 0.9; }
+    input[type="range"] { width: 150px; cursor: pointer; }
+    .value { background: rgba(255,255,255,0.1); padding: 4px 12px; border-radius: 20px; font-size: 0.85rem; }
+    .result {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .result-box {
+      background: rgba(116,185,255,0.2);
+      padding: 15px 25px;
+      border-radius: 15px;
+      text-align: center;
+    }
+    .result-box h3 { font-size: 0.8rem; opacity: 0.7; margin-bottom: 5px; }
+    .result-box p { font-size: 1.3rem; color: #74b9ff; }
+    .formula {
+      background: rgba(0,0,0,0.3);
+      padding: 10px 20px;
+      border-radius: 10px;
+      font-size: 1.2rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>⚖️ الضغط</h1>
+  <div class="container">
+    <canvas id="canvas" width="450" height="300"></canvas>
+    <div class="controls">
+      <div class="control-group">
+        <label>القوة (N)</label>
+        <input type="range" id="force" min="10" max="500" value="100">
+        <span class="value" id="forceValue">100 N</span>
+      </div>
+      <div class="control-group">
+        <label>المساحة (cm²)</label>
+        <input type="range" id="area" min="5" max="50" value="20">
+        <span class="value" id="areaValue">20 cm²</span>
+      </div>
+    </div>
+    <div class="result">
+      <div class="result-box">
+        <h3>الضغط</h3>
+        <p id="pressure">5 N/cm²</p>
+      </div>
+      <div class="result-box">
+        <h3>بالباسكال</h3>
+        <p id="pressurePa">50,000 Pa</p>
+      </div>
+    </div>
+    <div class="formula">P = F ÷ A</div>
+  </div>
+  
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    let force = 100, area = 20;
+    let pistonY = 80;
+    const particles = [];
+    
+    for (let i = 0; i < 80; i++) {
+      particles.push({
+        x: 120 + Math.random() * 210,
+        y: 100 + Math.random() * 160,
+        vx: (Math.random() - 0.5) * 2,
+        vy: (Math.random() - 0.5) * 2
+      });
+    }
+    
+    function updatePressure() {
+      const p = (force / area).toFixed(1);
+      const pa = Math.round(force / area * 10000);
+      document.getElementById('pressure').textContent = p + ' N/cm²';
+      document.getElementById('pressurePa').textContent = pa.toLocaleString() + ' Pa';
+    }
+    
+    document.getElementById('force').addEventListener('input', (e) => {
+      force = parseInt(e.target.value);
+      document.getElementById('forceValue').textContent = force + ' N';
+      updatePressure();
+    });
+    
+    document.getElementById('area').addEventListener('input', (e) => {
+      area = parseInt(e.target.value);
+      document.getElementById('areaValue').textContent = area + ' cm²';
+      updatePressure();
+    });
+    
+    function draw() {
+      ctx.clearRect(0, 0, 450, 300);
+      
+      const pressure = force / area;
+      const targetY = 60 + 40 * (1 - pressure / 25);
+      pistonY += (targetY - pistonY) * 0.1;
+      
+      // Container
+      ctx.fillStyle = '#2c3e50';
+      ctx.fillRect(110, 50, 230, 230);
+      
+      // Fluid
+      ctx.fillStyle = '#3498db';
+      ctx.fillRect(120, pistonY + 30, 210, 240 - pistonY);
+      
+      // Piston rod
+      ctx.fillStyle = '#7f8c8d';
+      ctx.fillRect(200, 10, 50, pistonY + 20);
+      
+      // Piston
+      ctx.fillStyle = '#95a5a6';
+      ctx.fillRect(120, pistonY + 20, 210, 15);
+      
+      // Force arrow
+      ctx.fillStyle = '#e74c3c';
+      ctx.beginPath();
+      ctx.moveTo(225, 10);
+      ctx.lineTo(210, 35);
+      ctx.lineTo(240, 35);
+      ctx.closePath();
+      ctx.fill();
+      
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 12px Arial';
+      ctx.fillText('F = ' + force + ' N', 195, 55);
+      
+      // Particles
+      const particleSpeed = pressure / 10;
+      particles.forEach(p => {
+        p.x += p.vx * particleSpeed;
+        p.y += p.vy * particleSpeed;
+        
+        if (p.x < 125 || p.x > 325) p.vx *= -1;
+        if (p.y < pistonY + 40 || p.y > 265) p.vy *= -1;
+        
+        p.x = Math.max(125, Math.min(325, p.x));
+        p.y = Math.max(pistonY + 40, Math.min(265, p.y));
+        
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(255,255,255,' + (0.4 + pressure/50) + ')';
+        ctx.fill();
+      });
+      
+      requestAnimationFrame(draw);
+    }
+    
+    updatePressure();
+    draw();
+  </script>
+</body>
+</html>`
+  },
+  {
+    id: "wave-properties",
+    name: "خصائص الموجات",
+    description: "محاكاة أنواع الموجات: المستعرضة، الطولية، والتداخل",
+    category: "الفيزياء",
+    icon: <Waves className="w-6 h-6" />,
+    difficulty: "صعب",
+    htmlCode: `<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>خصائص الموجات</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', Tahoma, sans-serif;
+      background: linear-gradient(135deg, #0f0f23 0%, #1a1a3e 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+      color: white;
+    }
+    h1 { margin-bottom: 15px; }
+    .tabs { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; justify-content: center; }
+    .tab {
+      padding: 10px 20px;
+      background: rgba(255,255,255,0.1);
+      border: none;
+      color: white;
+      border-radius: 25px;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-size: 0.9rem;
+    }
+    .tab.active { background: linear-gradient(135deg, #a855f7 0%, #7c3aed 100%); }
+    canvas {
+      background: rgba(0,0,0,0.4);
+      border-radius: 15px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+    }
+    .controls { display: flex; gap: 20px; margin-top: 20px; flex-wrap: wrap; justify-content: center; }
+    .control-group { display: flex; flex-direction: column; align-items: center; gap: 5px; }
+    label { font-size: 0.85rem; opacity: 0.8; }
+    input[type="range"] { width: 120px; }
+    .value { background: rgba(255,255,255,0.1); padding: 3px 10px; border-radius: 15px; font-size: 0.8rem; }
+    .legend { display: flex; gap: 20px; margin-top: 15px; flex-wrap: wrap; justify-content: center; }
+    .legend-item { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; }
+    .legend-dot { width: 12px; height: 4px; border-radius: 2px; }
+  </style>
+</head>
+<body>
+  <h1>🌊 خصائص الموجات</h1>
+  <div class="tabs">
+    <button class="tab active" onclick="setMode('transverse')">موجة مستعرضة</button>
+    <button class="tab" onclick="setMode('longitudinal')">موجة طولية</button>
+    <button class="tab" onclick="setMode('interference')">التداخل</button>
+    <button class="tab" onclick="setMode('standing')">موجة موقوفة</button>
+  </div>
+  <canvas id="canvas" width="600" height="250"></canvas>
+  <div class="controls">
+    <div class="control-group">
+      <label>الطول الموجي (λ)</label>
+      <input type="range" id="wavelength" min="30" max="150" value="80">
+      <span class="value" id="waveVal">80</span>
+    </div>
+    <div class="control-group">
+      <label>السعة (A)</label>
+      <input type="range" id="amplitude" min="10" max="60" value="40">
+      <span class="value" id="ampVal">40</span>
+    </div>
+    <div class="control-group">
+      <label>السرعة</label>
+      <input type="range" id="speed" min="1" max="10" value="5">
+      <span class="value" id="speedVal">5</span>
+    </div>
+  </div>
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:#a855f7"></div>الموجة الأولى</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#22d3ee"></div>الموجة الثانية</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#f472b6"></div>المحصلة</div>
+  </div>
+  
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    let mode = 'transverse';
+    let wavelength = 80, amplitude = 40, speed = 5, time = 0;
+    
+    function setMode(m) {
+      mode = m;
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      event.target.classList.add('active');
+    }
+    
+    document.getElementById('wavelength').addEventListener('input', (e) => {
+      wavelength = parseInt(e.target.value);
+      document.getElementById('waveVal').textContent = wavelength;
+    });
+    document.getElementById('amplitude').addEventListener('input', (e) => {
+      amplitude = parseInt(e.target.value);
+      document.getElementById('ampVal').textContent = amplitude;
+    });
+    document.getElementById('speed').addEventListener('input', (e) => {
+      speed = parseInt(e.target.value);
+      document.getElementById('speedVal').textContent = speed;
+    });
+    
+    function draw() {
+      ctx.clearRect(0, 0, 600, 250);
+      const cy = 125;
+      
+      // Center line
+      ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+      ctx.beginPath();
+      ctx.moveTo(0, cy);
+      ctx.lineTo(600, cy);
+      ctx.stroke();
+      
+      if (mode === 'transverse') {
+        ctx.beginPath();
+        for (let x = 0; x <= 570; x++) {
+          const y = cy + amplitude * Math.sin((x / wavelength) * Math.PI * 2 - time * speed * 0.05);
+          if (x === 0) ctx.moveTo(15, y);
+          else ctx.lineTo(15 + x, y);
+        }
+        ctx.strokeStyle = '#a855f7';
+        ctx.lineWidth = 3;
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = '#a855f7';
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+        ctx.lineWidth = 1;
+        
+      } else if (mode === 'longitudinal') {
+        ctx.fillStyle = 'rgba(255,255,255,0.05)';
+        ctx.fillRect(10, cy - 35, 580, 70);
+        
+        for (let i = 0; i < 45; i++) {
+          const baseX = 25 + i * 13;
+          const displacement = amplitude * 0.25 * Math.sin((baseX / wavelength) * Math.PI * 2 - time * speed * 0.05);
+          const x = baseX + displacement;
+          const compression = Math.cos((baseX / wavelength) * Math.PI * 2 - time * speed * 0.05);
+          ctx.beginPath();
+          ctx.arc(x, cy, 4 + compression * 2, 0, Math.PI * 2);
+          ctx.fillStyle = 'rgba(168, 85, 247, ' + (0.5 + compression * 0.3) + ')';
+          ctx.fill();
+        }
+        
+      } else if (mode === 'interference') {
+        // Wave 1
+        ctx.beginPath();
+        for (let x = 0; x <= 570; x++) {
+          const y = cy - 50 + amplitude * 0.5 * Math.sin((x / wavelength) * Math.PI * 2 - time * speed * 0.05);
+          if (x === 0) ctx.moveTo(15, y);
+          else ctx.lineTo(15 + x, y);
+        }
+        ctx.strokeStyle = '#a855f7';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        
+        // Wave 2
+        ctx.beginPath();
+        for (let x = 0; x <= 570; x++) {
+          const y = cy + 50 + amplitude * 0.5 * Math.sin((x / (wavelength * 0.8)) * Math.PI * 2 - time * speed * 0.04);
+          if (x === 0) ctx.moveTo(15, y);
+          else ctx.lineTo(15 + x, y);
+        }
+        ctx.strokeStyle = '#22d3ee';
+        ctx.stroke();
+        
+        // Resultant
+        ctx.beginPath();
+        for (let x = 0; x <= 570; x++) {
+          const y1 = amplitude * 0.5 * Math.sin((x / wavelength) * Math.PI * 2 - time * speed * 0.05);
+          const y2 = amplitude * 0.5 * Math.sin((x / (wavelength * 0.8)) * Math.PI * 2 - time * speed * 0.04);
+          if (x === 0) ctx.moveTo(15, cy + y1 + y2);
+          else ctx.lineTo(15 + x, cy + y1 + y2);
+        }
+        ctx.strokeStyle = '#f472b6';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+        ctx.lineWidth = 1;
+        
+      } else if (mode === 'standing') {
+        // Standing wave
+        ctx.beginPath();
+        for (let x = 0; x <= 570; x++) {
+          const envelope = Math.sin((x / wavelength) * Math.PI * 2);
+          const y = cy + amplitude * envelope * Math.cos(time * speed * 0.08);
+          if (x === 0) ctx.moveTo(15, y);
+          else ctx.lineTo(15 + x, y);
+        }
+        ctx.strokeStyle = '#a855f7';
+        ctx.lineWidth = 3;
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = '#a855f7';
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+        ctx.lineWidth = 1;
+        
+        // Nodes
+        for (let i = 0; i <= 7; i++) {
+          const x = 15 + i * wavelength / 2;
+          if (x < 585) {
+            ctx.beginPath();
+            ctx.arc(x, cy, 6, 0, Math.PI * 2);
+            ctx.fillStyle = '#22d3ee';
+            ctx.fill();
+          }
+        }
+      }
+      
+      time++;
+      requestAnimationFrame(draw);
+    }
+    
+    draw();
+  </script>
+</body>
+</html>`
   }
 ];
 
