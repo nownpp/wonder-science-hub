@@ -1,10 +1,29 @@
 import { motion } from "framer-motion";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import heroBanner from "@/assets/hero-banner.png";
 import scientistKid from "@/assets/scientist-kid.png";
-
+import { useAuth } from "@/hooks/useAuth";
 const HeroSection = () => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  const handleVideosClick = () => {
+    if (!user) {
+      navigate('/student-auth');
+    } else {
+      navigate('/videos');
+    }
+  };
+
+  const handleSimulationsClick = () => {
+    if (!user) {
+      navigate('/student-auth');
+    } else {
+      navigate('/simulations');
+    }
+  };
+
   return (
     <section className="relative min-h-[600px] overflow-hidden gradient-hero">
       {/* Background decorations */}
@@ -50,16 +69,12 @@ const HeroSection = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.6 }}
             >
-              <Link to="/videos">
-                <Button variant="fun" size="lg" className="w-full sm:w-auto">
-                  🎬 شاهد الفيديوهات
-                </Button>
-              </Link>
-              <Link to="/simulations">
-                <Button variant="secondary" size="lg" className="w-full sm:w-auto">
-                  🔬 جرب المحاكاة
-                </Button>
-              </Link>
+              <Button variant="fun" size="lg" className="w-full sm:w-auto" onClick={handleVideosClick}>
+                🎬 شاهد الفيديوهات
+              </Button>
+              <Button variant="secondary" size="lg" className="w-full sm:w-auto" onClick={handleSimulationsClick}>
+                🔬 جرب المحاكاة
+              </Button>
             </motion.div>
           </motion.div>
 
