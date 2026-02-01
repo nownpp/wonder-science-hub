@@ -6,7 +6,8 @@ import { motion } from "framer-motion";
 import VideoCard from "@/components/VideoCard";
 import SimulationCard from "@/components/SimulationCard";
 import { Droplets, Sun, Zap, TreePine } from "lucide-react";
-
+import { useAuth } from "@/hooks/useAuth";
+import { useNavigate } from "react-router-dom";
 const featuredVideos = [
   {
     id: 1,
@@ -56,6 +57,25 @@ const featuredSimulations = [
 ];
 
 const Index = () => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  const handleVideoClick = () => {
+    if (!user) {
+      navigate('/student-auth');
+    } else {
+      navigate('/videos');
+    }
+  };
+
+  const handleSimulationClick = () => {
+    if (!user) {
+      navigate('/student-auth');
+    } else {
+      navigate('/simulations');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -84,7 +104,7 @@ const Index = () => {
                   viewport={{ once: true }}
                   transition={{ delay: index * 0.1 }}
                 >
-                  <VideoCard {...video} />
+                  <VideoCard {...video} onClick={handleVideoClick} />
                 </motion.div>
               ))}
             </div>
@@ -112,7 +132,7 @@ const Index = () => {
                   viewport={{ once: true }}
                   transition={{ delay: index * 0.1 }}
                 >
-                  <SimulationCard {...simulation} />
+                  <SimulationCard {...simulation} onClick={handleSimulationClick} />
                 </motion.div>
               ))}
             </div>
