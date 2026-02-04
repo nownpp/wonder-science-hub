@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
-import { Heart, Star } from "lucide-react";
+import { Heart, Star, Shield, Info } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const Footer = () => {
   return (
@@ -20,6 +21,24 @@ const Footer = () => {
           <p className="text-muted-foreground mb-4">
             موقع تعليمي ممتع لتعليم العلوم للأطفال
           </p>
+
+          {/* Footer Links */}
+          <div className="flex items-center justify-center gap-6 mb-4">
+            <Link 
+              to="/about-us" 
+              className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors"
+            >
+              <Info className="w-4 h-4" />
+              <span>من نحن</span>
+            </Link>
+            <Link 
+              to="/privacy-policy" 
+              className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors"
+            >
+              <Shield className="w-4 h-4" />
+              <span>سياسة الخصوصية</span>
+            </Link>
+          </div>
           
           <div className="flex items-center justify-center gap-1 text-sm text-muted-foreground">
             <span>صُنع بـ</span>
