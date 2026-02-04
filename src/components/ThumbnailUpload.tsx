@@ -1,26 +1,37 @@
 import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
-import { Upload, X, Loader2, Image as ImageIcon } from 'lucide-react';
+import { X, Loader2, Image as ImageIcon, FileText } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface ThumbnailUploadProps {
   value: string | null;
   onChange: (url: string | null) => void;
   folder?: string;
+  acceptPdf?: boolean;
 }
 
-const ThumbnailUpload = ({ value, onChange, folder = 'general' }: ThumbnailUploadProps) => {
+const ThumbnailUpload = ({ value, onChange, folder = 'general', acceptPdf = false }: ThumbnailUploadProps) => {
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const isValidFileType = (file: File) => {
+    if (file.type.startsWith('image/')) return true;
+    if (acceptPdf && file.type === 'application/pdf') return true;
+    return false;
+  };
+
+  const isPdf = (url: string) => {
+    return url.toLowerCase().endsWith('.pdf');
+  };
 
   const handleUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
     // Validate file type
-    if (!file.type.startsWith('image/')) {
-      toast.error('يرجى اختيار ملف صورة');
+    if (!isValidFileType(file)) {
+      toast.error(acceptPdf ? 'يرجى اختيار ملف صورة أو PDF' : 'يرجى اختيار ملف صورة');
       return;
     }
 
@@ -65,11 +76,13 @@ const ThumbnailUpload = ({ value, onChange, folder = 'general' }: ThumbnailUploa
     onChange(null);
   };
 
+  const acceptTypes = acceptPdf ? "image/*,application/pdf" : "image/*";
+
   return (
     <div className="space-y-2">
       <input
         type="file"
-        accept="image/*"
+        accept={acceptTypes}
         onChange={handleUpload}
         ref={fileInputRef}
         className="hidden"
@@ -77,11 +90,26 @@ const ThumbnailUpload = ({ value, onChange, folder = 'general' }: ThumbnailUploa
 
       {value ? (
         <div className="relative w-full aspect-video rounded-lg overflow-hidden bg-muted">
-          <img
-            src={value}
-            alt="Thumbnail preview"
-            className="w-full h-full object-cover"
-          />
+          {isPdf(value) ? (
+            <div className="w-full h-full flex flex-col items-center justify-center bg-muted">
+              <FileText className="w-16 h-16 text-primary mb-2" />
+              <span className="text-sm text-muted-foreground">ملف PDF</span>
+              <a 
+                href={value} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-xs text-primary hover:underline mt-1"
+              >
+                عرض الملف
+              </a>
+            </div>
+          ) : (
+            <img
+              src={value}
+              alt="Thumbnail preview"
+              className="w-full h-full object-cover"
+            />
+          )}
           <Button
             variant="destructive"
             size="icon"
@@ -107,8 +135,17 @@ const ThumbnailUpload = ({ value, onChange, folder = 'general' }: ThumbnailUploa
             </>
           ) : (
             <>
-              <ImageIcon className="w-8 h-8 text-muted-foreground" />
-              <span className="text-sm text-muted-foreground">اضغط لرفع صورة مصغرة</span>
+              {acceptPdf ? (
+                <div className="flex gap-2">
+                  <ImageIcon className="w-6 h-6 text-muted-foreground" />
+                  <FileText className="w-6 h-6 text-muted-foreground" />
+                </div>
+              ) : (
+                <ImageIcon className="w-8 h-8 text-muted-foreground" />
+              )}
+              <span className="text-sm text-muted-foreground">
+                {acceptPdf ? 'اضغط لرفع صورة أو ملف PDF' : 'اضغط لرفع صورة مصغرة'}
+              </span>
             </>
           )}
         </Button>
