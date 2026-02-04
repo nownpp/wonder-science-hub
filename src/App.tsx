@@ -12,6 +12,8 @@ import Auth from "./pages/Auth";
 import StudentAuth from "./pages/StudentAuth";
 import StudentDashboard from "./pages/StudentDashboard";
 import ProfileSettings from "./pages/ProfileSettings";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import AboutUs from "./pages/AboutUs";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -32,6 +34,8 @@ const App = () => (
             <Route path="/student-auth" element={<StudentAuth />} />
             <Route path="/student-dashboard" element={<StudentDashboard />} />
             <Route path="/profile-settings" element={<ProfileSettings />} />
+            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+            <Route path="/about-us" element={<AboutUs />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

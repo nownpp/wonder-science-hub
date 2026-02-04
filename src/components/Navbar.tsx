@@ -1,9 +1,15 @@
 import { motion } from "framer-motion";
 import { Link, useLocation } from "react-router-dom";
-import { Home, Play, Atom, LayoutDashboard, Menu, X, GraduationCap } from "lucide-react";
+import { Home, Play, Atom, LayoutDashboard, Menu, X, GraduationCap, Info, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import atomIcon from "@/assets/atom-icon.png";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const navItems = [
   { path: "/", label: "الرئيسية", icon: Home },
@@ -19,19 +25,43 @@ const Navbar = () => {
     <nav className="sticky top-0 z-50 bg-card/95 backdrop-blur-md border-b border-border">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
-          {/* Logo */}
-          <Link to="/" className="flex items-center gap-2">
-            <motion.img
-              src={atomIcon}
-              alt="Logo"
-              className="w-10 h-10 rounded-full"
-              whileHover={{ rotate: 360 }}
-              transition={{ duration: 0.5 }}
-            />
-            <span className="text-xl font-bold text-primary hidden sm:block">
-              علوم ممتعة
-            </span>
-          </Link>
+          {/* Logo with Dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="flex items-center gap-2 cursor-pointer focus:outline-none">
+                <motion.img
+                  src={atomIcon}
+                  alt="Logo"
+                  className="w-10 h-10 rounded-full"
+                  whileHover={{ rotate: 360 }}
+                  transition={{ duration: 0.5 }}
+                />
+                <span className="text-xl font-bold text-primary hidden sm:block">
+                  علوم ممتعة
+                </span>
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-48">
+              <Link to="/">
+                <DropdownMenuItem className="cursor-pointer gap-2">
+                  <Home className="w-4 h-4" />
+                  الرئيسية
+                </DropdownMenuItem>
+              </Link>
+              <Link to="/about-us">
+                <DropdownMenuItem className="cursor-pointer gap-2">
+                  <Info className="w-4 h-4" />
+                  من نحن
+                </DropdownMenuItem>
+              </Link>
+              <Link to="/privacy-policy">
+                <DropdownMenuItem className="cursor-pointer gap-2">
+                  <Shield className="w-4 h-4" />
+                  سياسة الخصوصية
+                </DropdownMenuItem>
+              </Link>
+            </DropdownMenuContent>
+          </DropdownMenu>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-2">
