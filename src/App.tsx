@@ -14,6 +14,7 @@ import StudentDashboard from "./pages/StudentDashboard";
 import ProfileSettings from "./pages/ProfileSettings";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import AboutUs from "./pages/AboutUs";
+ import Files from "./pages/Files";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -29,6 +30,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/videos" element={<Videos />} />
             <Route path="/simulations" element={<Simulations />} />
+             <Route path="/files" element={<Files />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/student-auth" element={<StudentAuth />} />
