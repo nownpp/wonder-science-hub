@@ -216,38 +216,45 @@
        </main>
  
        {/* File Preview Dialog */}
-       <Dialog open={!!selectedFile} onOpenChange={() => setSelectedFile(null)}>
-         <DialogContent className="max-w-2xl">
-           <DialogHeader>
-             <DialogTitle className="text-2xl">{selectedFile?.title}</DialogTitle>
-           </DialogHeader>
-           <div className="space-y-4">
-             <div className="aspect-video bg-gradient-to-br from-primary/10 to-secondary/10 rounded-xl flex items-center justify-center">
-               <FileText className="w-24 h-24 text-primary/50" />
-             </div>
-             {selectedFile?.description && (
-               <p className="text-muted-foreground">{selectedFile.description}</p>
-             )}
-             <div className="flex gap-3">
-               <Button
-                 className="flex-1 gap-2"
-                 onClick={() => window.open(selectedFile?.file_url, '_blank')}
-               >
-                 <Download className="w-4 h-4" />
-                 تحميل الملف
-               </Button>
-               <Button
-                 variant="outline"
-                 className="gap-2"
-                 onClick={() => window.open(selectedFile?.file_url, '_blank')}
-               >
-                 <ExternalLink className="w-4 h-4" />
-                 فتح
-               </Button>
-             </div>
-           </div>
-         </DialogContent>
-       </Dialog>
+        <Dialog open={!!selectedFile} onOpenChange={() => setSelectedFile(null)}>
+          <DialogContent className="max-w-5xl max-h-[90vh]">
+            <DialogHeader>
+              <DialogTitle className="text-2xl">{selectedFile?.title}</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              {/* Embedded PDF Viewer */}
+              <div className="w-full h-[60vh] bg-muted rounded-xl overflow-hidden">
+                <iframe
+                  src={selectedFile?.file_url}
+                  className="w-full h-full border-0"
+                  title={selectedFile?.title}
+                />
+              </div>
+              {selectedFile?.description && (
+                <p className="text-muted-foreground">{selectedFile.description}</p>
+              )}
+              <div className="flex gap-3">
+                <Button
+                  className="flex-1 gap-2"
+                  onClick={() => window.open(selectedFile?.file_url, '_blank')}
+                >
+                  <ExternalLink className="w-4 h-4" />
+                  فتح في نافذة جديدة
+                </Button>
+                <Button
+                  variant="outline"
+                  className="gap-2"
+                  asChild
+                >
+                  <a href={selectedFile?.file_url} download>
+                    <Download className="w-4 h-4" />
+                    تحميل
+                  </a>
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
  
        <Footer />
      </div>
