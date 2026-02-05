@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { Link, useLocation } from "react-router-dom";
-import { Home, Play, Atom, LayoutDashboard, Menu, X, GraduationCap, Info, Shield } from "lucide-react";
+ import { Home, Play, Atom, LayoutDashboard, Menu, X, GraduationCap, Info, Shield, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import atomIcon from "@/assets/atom-icon.png";
@@ -15,6 +15,7 @@ const navItems = [
   { path: "/", label: "الرئيسية", icon: Home },
   { path: "/videos", label: "الفيديوهات", icon: Play },
   { path: "/simulations", label: "المحاكاة", icon: Atom },
+   { path: "/files", label: "الملفات", icon: FileText },
 ];
 
 const Navbar = () => {

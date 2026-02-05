@@ -20,7 +20,8 @@ import {
   Play,
   FileText,
   Loader2,
-  LogOut
+   LogOut,
+   Download
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -78,12 +79,25 @@ interface SimulationType {
   html_code: string | null;
 }
 
+ interface FileType {
+   id: string;
+   title: string;
+   description: string | null;
+   file_url: string;
+   thumbnail_url: string | null;
+   category: string;
+   grade: string | null;
+   downloads_count: number | null;
+   created_at: string;
+ }
+ 
 const DashboardPage = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading, signOut } = useAuth();
   
   const [videos, setVideos] = useState<VideoType[]>([]);
   const [simulations, setSimulations] = useState<SimulationType[]>([]);
+   const [files, setFiles] = useState<FileType[]>([]);
   const [loading, setLoading] = useState(true);
   
   // Video form state
@@ -107,9 +121,19 @@ const DashboardPage = () => {
   const [newSimHtmlCode, setNewSimHtmlCode] = useState<string | null>(null);
   const [addingSimulation, setAddingSimulation] = useState(false);
   
+   // File form state
+   const [newFileTitle, setNewFileTitle] = useState("");
+   const [newFileDescription, setNewFileDescription] = useState("");
+   const [newFileCategory, setNewFileCategory] = useState("");
+   const [newFileUrl, setNewFileUrl] = useState<string | null>(null);
+   const [newFileThumbnail, setNewFileThumbnail] = useState<string | null>(null);
+   const [newFileGrade, setNewFileGrade] = useState("الصف الثالث");
+   const [addingFile, setAddingFile] = useState(false);
+ 
   // Edit dialog state
   const [editingVideo, setEditingVideo] = useState<VideoType | null>(null);
   const [editingSimulation, setEditingSimulation] = useState<SimulationType | null>(null);
+   const [editingFile, setEditingFile] = useState<FileType | null>(null);
 
   // Redirect to auth if not logged in
   useEffect(() => {
@@ -123,6 +147,7 @@ const DashboardPage = () => {
     if (user) {
       fetchVideos();
       fetchSimulations();
+       fetchFiles();
     }
   }, [user]);
 
@@ -155,6 +180,20 @@ const DashboardPage = () => {
     }
   };
 
+   const fetchFiles = async () => {
+     const { data, error } = await supabase
+       .from('files')
+       .select('*')
+       .order('created_at', { ascending: false });
+     
+     if (error) {
+       console.error('Error fetching files:', error);
+       toast.error('حدث خطأ في جلب الملفات');
+     } else {
+       setFiles(data || []);
+     }
+   };
+ 
   const handleAddVideo = async () => {
     if (!newVideoTitle.trim()) {
       toast.error("الرجاء إدخال عنوان الفيديو");
@@ -324,6 +363,88 @@ const DashboardPage = () => {
     }
   };
 
+   const handleAddFile = async () => {
+     if (!newFileTitle.trim()) {
+       toast.error("الرجاء إدخال عنوان الملف");
+       return;
+     }
+     if (!newFileUrl) {
+       toast.error("الرجاء رفع ملف PDF");
+       return;
+     }
+     
+     setAddingFile(true);
+     
+     const { data, error } = await supabase
+       .from('files')
+       .insert({
+         title: newFileTitle,
+         description: newFileDescription || null,
+         category: newFileCategory || 'عام',
+         file_url: newFileUrl,
+         thumbnail_url: newFileThumbnail,
+         grade: newFileGrade,
+       })
+       .select()
+       .single();
+     
+     if (error) {
+       console.error('Error adding file:', error);
+       toast.error('حدث خطأ في إضافة الملف');
+     } else {
+       setFiles([data, ...files]);
+       setNewFileTitle("");
+       setNewFileDescription("");
+       setNewFileCategory("");
+       setNewFileUrl(null);
+       setNewFileThumbnail(null);
+       setNewFileGrade("الصف الثالث");
+       toast.success("تمت إضافة الملف بنجاح!");
+     }
+     
+     setAddingFile(false);
+   };
+ 
+   const handleDeleteFile = async (id: string) => {
+     const { error } = await supabase
+       .from('files')
+       .delete()
+       .eq('id', id);
+     
+     if (error) {
+       console.error('Error deleting file:', error);
+       toast.error('حدث خطأ في حذف الملف');
+     } else {
+       setFiles(files.filter(f => f.id !== id));
+       toast.success("تم حذف الملف");
+     }
+   };
+ 
+   const handleUpdateFile = async () => {
+     if (!editingFile) return;
+     
+     const { error } = await supabase
+       .from('files')
+       .update({
+         title: editingFile.title,
+         description: editingFile.description,
+         category: editingFile.category,
+         file_url: editingFile.file_url,
+         thumbnail_url: editingFile.thumbnail_url,
+         grade: editingFile.grade,
+       })
+       .eq('id', editingFile.id);
+     
+     if (error) {
+       console.error('Error updating file:', error);
+       toast.error('حدث خطأ في تحديث الملف');
+     } else {
+       setFiles(files.map(f => f.id === editingFile.id ? editingFile : f));
+       setEditingFile(null);
+       toast.success("تم تحديث الملف بنجاح!");
+     }
+   };
+ 
   if (loading || authLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -369,8 +490,8 @@ const DashboardPage = () => {
             )}
           </motion.div>
 
-          <Tabs defaultValue="videos" className="max-w-4xl mx-auto">
-            <TabsList className="grid w-full grid-cols-2 mb-8">
+           <Tabs defaultValue="videos" className="max-w-5xl mx-auto">
+             <TabsList className="grid w-full grid-cols-3 mb-8">
               <TabsTrigger value="videos" className="gap-2">
                 <Video className="w-4 h-4" />
                 الفيديوهات
@@ -379,6 +500,10 @@ const DashboardPage = () => {
                 <Atom className="w-4 h-4" />
                 المحاكاة
               </TabsTrigger>
+               <TabsTrigger value="files" className="gap-2">
+                 <FileText className="w-4 h-4" />
+                 الملفات
+               </TabsTrigger>
             </TabsList>
 
             <TabsContent value="videos">
@@ -715,6 +840,156 @@ const DashboardPage = () => {
                 </Card>
               </div>
             </TabsContent>
+             <TabsContent value="files">
+               <div className="grid gap-6">
+                 {/* Add New File */}
+                 <Card>
+                   <CardHeader>
+                     <CardTitle className="flex items-center gap-2 text-xl">
+                       <Plus className="w-5 h-5 text-primary" />
+                       إضافة ملف جديد
+                     </CardTitle>
+                   </CardHeader>
+                   <CardContent className="space-y-4">
+                     <div className="grid gap-4 md:grid-cols-2">
+                       <div>
+                         <label className="block text-sm font-medium mb-2">عنوان الملف *</label>
+                         <Input
+                           placeholder="مثال: ملخص الوحدة الأولى"
+                           value={newFileTitle}
+                           onChange={(e) => setNewFileTitle(e.target.value)}
+                         />
+                       </div>
+                       <div>
+                         <label className="block text-sm font-medium mb-2">التصنيف</label>
+                         <Input
+                           placeholder="مثال: ملخصات"
+                           value={newFileCategory}
+                           onChange={(e) => setNewFileCategory(e.target.value)}
+                         />
+                       </div>
+                     </div>
+                     <div>
+                       <label className="block text-sm font-medium mb-2">الصف الدراسي</label>
+                       <Select value={newFileGrade} onValueChange={setNewFileGrade}>
+                         <SelectTrigger>
+                           <SelectValue placeholder="اختر الصف" />
+                         </SelectTrigger>
+                         <SelectContent>
+                           {grades.map((grade) => (
+                             <SelectItem key={grade} value={grade}>{grade}</SelectItem>
+                           ))}
+                         </SelectContent>
+                       </Select>
+                     </div>
+                     <div>
+                       <label className="block text-sm font-medium mb-2">الوصف</label>
+                       <Textarea
+                         placeholder="وصف مختصر للملف..."
+                         value={newFileDescription}
+                         onChange={(e) => setNewFileDescription(e.target.value)}
+                         rows={3}
+                       />
+                     </div>
+                     <div>
+                       <label className="block text-sm font-medium mb-2">ملف PDF *</label>
+                       <ThumbnailUpload
+                         value={newFileUrl}
+                         onChange={setNewFileUrl}
+                         folder="files"
+                         acceptPdf
+                       />
+                     </div>
+                     <div>
+                       <label className="block text-sm font-medium mb-2">الصورة المصغرة (اختياري)</label>
+                       <ThumbnailUpload
+                         value={newFileThumbnail}
+                         onChange={setNewFileThumbnail}
+                         folder="files-thumbnails"
+                       />
+                     </div>
+                     <Button 
+                       onClick={handleAddFile} 
+                       className="w-full"
+                       disabled={addingFile}
+                     >
+                       {addingFile ? (
+                         <Loader2 className="w-4 h-4 ml-2 animate-spin" />
+                       ) : (
+                         <Plus className="w-4 h-4 ml-2" />
+                       )}
+                       إضافة الملف
+                     </Button>
+                   </CardContent>
+                 </Card>
+ 
+                 {/* Files List */}
+                 <Card>
+                   <CardHeader>
+                     <CardTitle className="flex items-center gap-2 text-xl">
+                       <FileText className="w-5 h-5" />
+                       الملفات المضافة ({files.length})
+                     </CardTitle>
+                   </CardHeader>
+                   <CardContent>
+                     {files.length === 0 ? (
+                       <p className="text-center text-muted-foreground py-8">
+                         لا توجد ملفات بعد. أضف أول ملف!
+                       </p>
+                     ) : (
+                       <div className="space-y-3">
+                         {files.map((file, index) => (
+                           <motion.div
+                             key={file.id}
+                             initial={{ opacity: 0, x: -20 }}
+                             animate={{ opacity: 1, x: 0 }}
+                             transition={{ delay: index * 0.1 }}
+                             className="flex items-center justify-between p-4 bg-muted/50 rounded-xl"
+                           >
+                             <div className="flex items-center gap-3">
+                               <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
+                                 <FileText className="w-5 h-5 text-primary" />
+                               </div>
+                               <div>
+                                 <h4 className="font-medium">{file.title}</h4>
+                                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                   <span>{file.category}</span>
+                                   {file.grade && <span>• {file.grade}</span>}
+                                 </div>
+                               </div>
+                             </div>
+                             <div className="flex gap-2">
+                               <Button 
+                                 variant="ghost" 
+                                 size="icon"
+                                 onClick={() => window.open(file.file_url, '_blank')}
+                               >
+                                 <Download className="w-4 h-4" />
+                               </Button>
+                               <Button 
+                                 variant="ghost" 
+                                 size="icon"
+                                 onClick={() => setEditingFile(file)}
+                               >
+                                 <Edit2 className="w-4 h-4" />
+                               </Button>
+                               <Button 
+                                 variant="ghost" 
+                                 size="icon" 
+                                 className="text-destructive"
+                                 onClick={() => handleDeleteFile(file.id)}
+                               >
+                                 <Trash2 className="w-4 h-4" />
+                               </Button>
+                             </div>
+                           </motion.div>
+                         ))}
+                       </div>
+                     )}
+                   </CardContent>
+                 </Card>
+               </div>
+             </TabsContent>
           </Tabs>
         </div>
       </main>
@@ -894,6 +1169,77 @@ const DashboardPage = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+       {/* Edit File Dialog */}
+       <Dialog open={!!editingFile} onOpenChange={() => setEditingFile(null)}>
+         <DialogContent>
+           <DialogHeader>
+             <DialogTitle>تعديل الملف</DialogTitle>
+           </DialogHeader>
+           {editingFile && (
+             <div className="space-y-4">
+               <div>
+                 <label className="block text-sm font-medium mb-2">عنوان الملف</label>
+                 <Input
+                   value={editingFile.title}
+                   onChange={(e) => setEditingFile({...editingFile, title: e.target.value})}
+                 />
+               </div>
+               <div>
+                 <label className="block text-sm font-medium mb-2">التصنيف</label>
+                 <Input
+                   value={editingFile.category}
+                   onChange={(e) => setEditingFile({...editingFile, category: e.target.value})}
+                 />
+               </div>
+               <div>
+                 <label className="block text-sm font-medium mb-2">الصف الدراسي</label>
+                 <Select 
+                   value={editingFile.grade || 'الصف الثالث'} 
+                   onValueChange={(value) => setEditingFile({...editingFile, grade: value})}
+                 >
+                   <SelectTrigger>
+                     <SelectValue placeholder="اختر الصف" />
+                   </SelectTrigger>
+                   <SelectContent>
+                     {grades.map((grade) => (
+                       <SelectItem key={grade} value={grade}>{grade}</SelectItem>
+                     ))}
+                   </SelectContent>
+                 </Select>
+               </div>
+               <div>
+                 <label className="block text-sm font-medium mb-2">الوصف</label>
+                 <Textarea
+                   value={editingFile.description || ''}
+                   onChange={(e) => setEditingFile({...editingFile, description: e.target.value})}
+                   rows={3}
+                 />
+               </div>
+               <div>
+                 <label className="block text-sm font-medium mb-2">ملف PDF</label>
+                 <ThumbnailUpload
+                   value={editingFile.file_url}
+                   onChange={(url) => setEditingFile({...editingFile, file_url: url || ''})}
+                   folder="files"
+                   acceptPdf
+                 />
+               </div>
+               <div>
+                 <label className="block text-sm font-medium mb-2">الصورة المصغرة</label>
+                 <ThumbnailUpload
+                   value={editingFile.thumbnail_url}
+                   onChange={(url) => setEditingFile({...editingFile, thumbnail_url: url})}
+                   folder="files-thumbnails"
+                 />
+               </div>
+             </div>
+           )}
+           <DialogFooter>
+             <Button variant="outline" onClick={() => setEditingFile(null)}>إلغاء</Button>
+             <Button onClick={handleUpdateFile}>حفظ التغييرات</Button>
+           </DialogFooter>
+         </DialogContent>
+       </Dialog>
     </div>
   );
 };
