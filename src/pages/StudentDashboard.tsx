@@ -8,7 +8,7 @@ import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Loader2, LogOut, Home, BookOpen, Play, Trophy, 
-  Clock, CheckCircle2, Video, Atom, TrendingUp 
+  Clock, CheckCircle2, Video, Atom, TrendingUp, FileText 
 } from 'lucide-react';
 
 interface Profile {
@@ -35,6 +35,14 @@ interface ContentItem {
   thumbnail_url: string | null;
 }
 
+interface FileItem {
+  id: string;
+  title: string;
+  category: string;
+  thumbnail_url: string | null;
+  file_url: string;
+}
+
 const StudentDashboard = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading, signOut } = useAuth();
@@ -43,6 +51,7 @@ const StudentDashboard = () => {
   const [progress, setProgress] = useState<StudentProgress[]>([]);
   const [videos, setVideos] = useState<ContentItem[]>([]);
   const [simulations, setSimulations] = useState<ContentItem[]>([]);
+  const [files, setFiles] = useState<FileItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -105,6 +114,16 @@ const StudentDashboard = () => {
       setSimulations(simulationsData);
     }
 
+    // Fetch files filtered by student's grade
+    const { data: filesData } = await supabase
+      .from('files')
+      .select('id, title, category, thumbnail_url, file_url, grade')
+      .eq('grade', studentGrade);
+    
+    if (filesData) {
+      setFiles(filesData);
+    }
+
     setLoading(false);
   };
 
@@ -125,7 +144,7 @@ const StudentDashboard = () => {
   };
 
   const getOverallProgress = () => {
-    const totalContent = videos.length + simulations.length;
+    const totalContent = videos.length + simulations.length + files.length;
     if (totalContent === 0) return 0;
     const completedCount = progress.filter(p => p.completed).length;
     return Math.round((completedCount / totalContent) * 100);
@@ -229,9 +248,9 @@ const StudentDashboard = () => {
               <BookOpen className="w-5 h-5 text-primary" />
               تقدمك في التعلم - {profile?.grade || 'الصف الثالث'}
             </CardTitle>
-            <CardDescription>
-              أكملت {getCompletedCount('video') + getCompletedCount('simulation')} من {videos.length + simulations.length} درس في صفك
-            </CardDescription>
+          <CardDescription>
+            أكملت {getCompletedCount('video') + getCompletedCount('simulation') + getCompletedCount('file')} من {videos.length + simulations.length + files.length} درس في صفك
+          </CardDescription>
           </CardHeader>
           <CardContent>
             <Progress value={getOverallProgress()} className="h-4" />
@@ -243,7 +262,7 @@ const StudentDashboard = () => {
 
         {/* Content Tabs */}
         <Tabs defaultValue="videos" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="videos" className="flex items-center gap-2">
               <Video className="w-4 h-4" />
               الفيديوهات ({getCompletedCount('video')}/{videos.length})
@@ -251,6 +270,10 @@ const StudentDashboard = () => {
             <TabsTrigger value="simulations" className="flex items-center gap-2">
               <Atom className="w-4 h-4" />
               المحاكاة ({getCompletedCount('simulation')}/{simulations.length})
+            </TabsTrigger>
+            <TabsTrigger value="files" className="flex items-center gap-2">
+              <FileText className="w-4 h-4" />
+              الملفات ({getCompletedCount('file')}/{files.length})
             </TabsTrigger>
           </TabsList>
 
@@ -346,6 +369,51 @@ const StudentDashboard = () => {
                 <div className="col-span-full text-center py-12 text-muted-foreground">
                   <Atom className="w-16 h-16 mx-auto mb-4 opacity-50" />
                   <p>لا توجد محاكاة لـ {profile?.grade || 'صفك'} حالياً</p>
+                </div>
+              )}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="files">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {files.map((file) => (
+                <Card 
+                  key={file.id} 
+                  className={`overflow-hidden transition-all hover:shadow-lg cursor-pointer ${
+                    isContentCompleted(file.id, 'file') ? 'ring-2 ring-green-500' : ''
+                  }`}
+                  onClick={() => window.open(file.file_url, '_blank')}
+                >
+                  <div className="aspect-video bg-gradient-to-br from-primary/10 to-secondary/10 relative flex items-center justify-center">
+                    {file.thumbnail_url ? (
+                      <img 
+                        src={file.thumbnail_url} 
+                        alt={file.title}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <FileText className="w-12 h-12 text-primary" />
+                    )}
+                    {isContentCompleted(file.id, 'file') && (
+                      <div className="absolute top-2 left-2 bg-green-500 text-white rounded-full p-1">
+                        <CheckCircle2 className="w-4 h-4" />
+                      </div>
+                    )}
+                  </div>
+                  <CardContent className="p-4">
+                    <h3 className="font-semibold text-foreground mb-2 line-clamp-1">{file.title}</h3>
+                    <div className="flex items-center justify-between text-sm text-muted-foreground mb-2">
+                      <span>{file.category}</span>
+                      <span>{getContentProgress(file.id, 'file')}%</span>
+                    </div>
+                    <Progress value={getContentProgress(file.id, 'file')} className="h-2" />
+                  </CardContent>
+                </Card>
+              ))}
+              {files.length === 0 && (
+                <div className="col-span-full text-center py-12 text-muted-foreground">
+                  <FileText className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                  <p>لا توجد ملفات لـ {profile?.grade || 'صفك'} حالياً</p>
                 </div>
               )}
             </div>
