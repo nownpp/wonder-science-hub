@@ -56,6 +56,74 @@ export type Database = {
         }
         Relationships: []
       }
+      notification_votes: {
+        Row: {
+          created_at: string
+          id: string
+          notification_id: string
+          user_id: string
+          vote: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          notification_id: string
+          user_id: string
+          vote: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          notification_id?: string
+          user_id?: string
+          vote?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_votes_notification_id_fkey"
+            columns: ["notification_id"]
+            isOneToOne: false
+            referencedRelation: "notifications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notifications: {
+        Row: {
+          allow_voting: boolean | null
+          content: string
+          created_at: string
+          created_by: string | null
+          expires_at: string | null
+          id: string
+          target_grade: string | null
+          title: string
+          type: string | null
+        }
+        Insert: {
+          allow_voting?: boolean | null
+          content: string
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          target_grade?: string | null
+          title: string
+          type?: string | null
+        }
+        Update: {
+          allow_voting?: boolean | null
+          content?: string
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          target_grade?: string | null
+          title?: string
+          type?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
