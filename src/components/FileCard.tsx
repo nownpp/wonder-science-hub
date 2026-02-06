@@ -68,24 +68,32 @@
                {description}
              </p>
            )}
-           <div className="flex gap-2">
-             <Button
-               variant="default"
-               size="sm"
-               className="flex-1 gap-2"
-               onClick={handleDownload}
-             >
-               <Download className="w-4 h-4" />
-               تحميل
-             </Button>
-             <Button
-               variant="outline"
-               size="icon"
-               onClick={handleDownload}
-             >
-               <ExternalLink className="w-4 h-4" />
-             </Button>
-           </div>
+            <div className="flex gap-2">
+              <Button
+                variant="default"
+                size="sm"
+                className="flex-1 gap-2"
+                onClick={handleDownload}
+              >
+                <ExternalLink className="w-4 h-4" />
+                عرض
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  const link = document.createElement('a');
+                  link.href = fileUrl;
+                  link.download = title;
+                  link.click();
+                }}
+              >
+                <Download className="w-4 h-4" />
+                تحميل
+              </Button>
+            </div>
          </CardContent>
        </Card>
      </motion.div>
