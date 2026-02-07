@@ -8,9 +8,9 @@ import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Loader2, LogOut, Home, BookOpen, Play, Trophy, 
-  Clock, CheckCircle2, Video, Atom, TrendingUp, FileText, Bell 
+  Clock, CheckCircle2, Video, Atom, TrendingUp, FileText 
 } from 'lucide-react';
-import NotificationsList from '@/components/NotificationsList';
+
 
 interface Profile {
   id: string;
@@ -262,12 +262,8 @@ const StudentDashboard = () => {
         </Card>
 
         {/* Content Tabs */}
-        <Tabs defaultValue="notifications" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="notifications" className="flex items-center gap-2">
-              <Bell className="w-4 h-4" />
-              الإشعارات
-            </TabsTrigger>
+        <Tabs defaultValue="videos" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="videos" className="flex items-center gap-2">
               <Video className="w-4 h-4" />
               الفيديوهات ({getCompletedCount('video')}/{videos.length})
@@ -281,10 +277,6 @@ const StudentDashboard = () => {
               الملفات ({getCompletedCount('file')}/{files.length})
             </TabsTrigger>
           </TabsList>
-
-          <TabsContent value="notifications">
-            <NotificationsList userGrade={profile?.grade || undefined} userId={user?.id} />
-          </TabsContent>
 
           <TabsContent value="videos">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">

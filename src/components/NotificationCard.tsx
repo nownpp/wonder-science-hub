@@ -20,6 +20,7 @@ interface NotificationCardProps {
   rejectCount: number;
   userVote?: 'approve' | 'reject' | null;
   onVoteChange?: () => void;
+  compact?: boolean;
 }
 
 const NotificationCard = ({
@@ -34,6 +35,7 @@ const NotificationCard = ({
   rejectCount,
   userVote,
   onVoteChange,
+  compact = false,
 }: NotificationCardProps) => {
   const [isVoting, setIsVoting] = useState(false);
   const [currentVote, setCurrentVote] = useState(userVote);
@@ -118,6 +120,55 @@ const NotificationCard = ({
   };
 
   const isExpired = expiresAt && new Date(expiresAt) < new Date();
+
+  if (compact) {
+    return (
+      <div className={`p-3 ${isExpired ? 'opacity-60' : ''}`}>
+        <div className="flex items-start gap-2">
+          <span className="text-lg">{getTypeIcon()}</span>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1">
+              <h4 className="font-semibold text-sm truncate">{title}</h4>
+              <Badge variant={getTypeBadgeVariant()} className="text-xs">
+                {type === 'poll' ? 'تصويت' : type === 'alert' ? 'تنبيه' : 'إعلان'}
+              </Badge>
+            </div>
+            <p className="text-xs text-muted-foreground line-clamp-2">{content}</p>
+            <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
+              <Clock className="w-3 h-3" />
+              {formatDate(createdAt)}
+              {isExpired && <Badge variant="outline" className="text-xs text-destructive">منتهي</Badge>}
+            </div>
+            
+            {allowVoting && !isExpired && (
+              <div className="flex items-center gap-2 mt-2">
+                <Button
+                  variant={currentVote === 'approve' ? 'default' : 'outline'}
+                  size="sm"
+                  className="h-7 text-xs gap-1"
+                  onClick={() => handleVote('approve')}
+                  disabled={isVoting}
+                >
+                  <ThumbsUp className="w-3 h-3" />
+                  {approveCount}
+                </Button>
+                <Button
+                  variant={currentVote === 'reject' ? 'destructive' : 'outline'}
+                  size="sm"
+                  className="h-7 text-xs gap-1"
+                  onClick={() => handleVote('reject')}
+                  disabled={isVoting}
+                >
+                  <ThumbsDown className="w-3 h-3" />
+                  {rejectCount}
+                </Button>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <motion.div

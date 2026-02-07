@@ -1,8 +1,8 @@
 import { motion } from "framer-motion";
 import { Link, useLocation } from "react-router-dom";
- import { Home, Play, Atom, LayoutDashboard, Menu, X, GraduationCap, Info, Shield, FileText } from "lucide-react";
+import { Home, Play, Atom, LayoutDashboard, Menu, X, GraduationCap, Info, Shield, FileText, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import atomIcon from "@/assets/atom-icon.png";
 import {
   DropdownMenu,
@@ -10,6 +10,14 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import NotificationsList from "@/components/NotificationsList";
 
 const navItems = [
   { path: "/", label: "الرئيسية", icon: Home },
@@ -21,6 +29,37 @@ const navItems = [
 const Navbar = () => {
   const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const { user } = useAuth();
+  const [userGrade, setUserGrade] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (user) {
+      fetchUserGrade();
+      fetchUnreadCount();
+    }
+  }, [user]);
+
+  const fetchUserGrade = async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from('profiles')
+      .select('grade')
+      .eq('id', user.id)
+      .single();
+    if (data) {
+      setUserGrade(data.grade);
+    }
+  };
+
+  const fetchUnreadCount = async () => {
+    const { count } = await supabase
+      .from('notifications')
+      .select('*', { count: 'exact', head: true })
+      .or('expires_at.is.null,expires_at.gt.' + new Date().toISOString());
+    setUnreadCount(count || 0);
+  };
 
   return (
     <nav className="sticky top-0 z-50 bg-card/95 backdrop-blur-md border-b border-border">
@@ -79,29 +118,59 @@ const Navbar = () => {
               </Link>
             ))}
             
+            {/* Notifications Bell */}
+            {user && (
+              <Popover open={notificationsOpen} onOpenChange={setNotificationsOpen}>
+                <PopoverTrigger asChild>
+                  <Button variant="ghost" size="icon" className="relative">
+                    <Bell className="w-5 h-5" />
+                    {unreadCount > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                        {unreadCount > 9 ? '9+' : unreadCount}
+                      </span>
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-80 p-0 max-h-96 overflow-auto" align="end">
+                  <div className="p-3 border-b">
+                    <h3 className="font-semibold text-foreground">الإشعارات</h3>
+                  </div>
+                  <NotificationsList 
+                    userGrade={userGrade || undefined} 
+                    userId={user?.id} 
+                    compact={true}
+                  />
+                </PopoverContent>
+              </Popover>
+            )}
+
             {/* Student Login Button */}
-            <Link to="/student-auth">
-              <Button
-                variant="outline"
-                size="sm"
-                className="gap-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground"
-              >
-                <GraduationCap className="w-4 h-4" />
-                دخول الطلاب
-              </Button>
-            </Link>
+            {!user && (
+              <Link to="/student-auth">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground"
+                >
+                  <GraduationCap className="w-4 h-4" />
+                  دخول الطلاب
+                </Button>
+              </Link>
+            )}
             
             {/* Teacher Login Button */}
-            <Link to="/auth">
-              <Button
-                variant="default"
-                size="sm"
-                className="gap-2"
-              >
-                <LayoutDashboard className="w-4 h-4" />
-                دخول المعلمين
-              </Button>
-            </Link>
+            {!user && (
+              <Link to="/auth">
+                <Button
+                  variant="default"
+                  size="sm"
+                  className="gap-2"
+                >
+                  <LayoutDashboard className="w-4 h-4" />
+                  دخول المعلمين
+                </Button>
+              </Link>
+            )}
           </div>
 
           {/* Mobile menu button */}
@@ -137,26 +206,50 @@ const Navbar = () => {
               ))}
               
               {/* Student Login Button - Mobile */}
-              <Link to="/student-auth" onClick={() => setIsOpen(false)}>
-                <Button
-                  variant="outline"
-                  className="w-full justify-start gap-2 border-primary text-primary"
-                >
-                  <GraduationCap className="w-4 h-4" />
-                  دخول الطلاب
-                </Button>
-              </Link>
+              {!user && (
+                <Link to="/student-auth" onClick={() => setIsOpen(false)}>
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start gap-2 border-primary text-primary"
+                  >
+                    <GraduationCap className="w-4 h-4" />
+                    دخول الطلاب
+                  </Button>
+                </Link>
+              )}
               
               {/* Teacher Login Button - Mobile */}
-              <Link to="/auth" onClick={() => setIsOpen(false)}>
+              {!user && (
+                <Link to="/auth" onClick={() => setIsOpen(false)}>
+                  <Button
+                    variant="default"
+                    className="w-full justify-start gap-2"
+                  >
+                    <LayoutDashboard className="w-4 h-4" />
+                    دخول المعلمين
+                  </Button>
+                </Link>
+              )}
+
+              {/* Notifications - Mobile */}
+              {user && (
                 <Button
-                  variant="default"
+                  variant="ghost"
                   className="w-full justify-start gap-2"
+                  onClick={() => {
+                    setNotificationsOpen(true);
+                    setIsOpen(false);
+                  }}
                 >
-                  <LayoutDashboard className="w-4 h-4" />
-                  دخول المعلمين
+                  <Bell className="w-4 h-4" />
+                  الإشعارات
+                  {unreadCount > 0 && (
+                    <span className="bg-destructive text-destructive-foreground text-xs rounded-full px-2 py-0.5">
+                      {unreadCount}
+                    </span>
+                  )}
                 </Button>
-              </Link>
+              )}
             </div>
           </motion.div>
         )}
