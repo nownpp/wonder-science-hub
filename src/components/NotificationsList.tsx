@@ -23,9 +23,10 @@ interface Vote {
 interface NotificationsListProps {
   userGrade?: string;
   userId?: string;
+  compact?: boolean;
 }
 
-const NotificationsList = ({ userGrade, userId }: NotificationsListProps) => {
+const NotificationsList = ({ userGrade, userId, compact = false }: NotificationsListProps) => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [votes, setVotes] = useState<Vote[]>([]);
   const [loading, setLoading] = useState(true);
@@ -90,23 +91,23 @@ const NotificationsList = ({ userGrade, userId }: NotificationsListProps) => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      <div className={`flex items-center justify-center ${compact ? 'py-6' : 'py-12'}`}>
+        <Loader2 className={`${compact ? 'w-6 h-6' : 'w-8 h-8'} animate-spin text-primary`} />
       </div>
     );
   }
 
   if (notifications.length === 0) {
     return (
-      <div className="text-center py-12">
-        <Bell className="w-16 h-16 mx-auto mb-4 text-muted-foreground/50" />
-        <p className="text-muted-foreground text-lg">لا توجد إشعارات حالياً</p>
+      <div className={`text-center ${compact ? 'py-6' : 'py-12'}`}>
+        <Bell className={`${compact ? 'w-10 h-10' : 'w-16 h-16'} mx-auto mb-2 text-muted-foreground/50`} />
+        <p className={`text-muted-foreground ${compact ? 'text-sm' : 'text-lg'}`}>لا توجد إشعارات حالياً</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-4">
+    <div className={compact ? 'divide-y' : 'space-y-4'}>
       {notifications.map((notification) => {
         const { approveCount, rejectCount } = getVoteCounts(notification.id);
         return (
@@ -123,6 +124,7 @@ const NotificationsList = ({ userGrade, userId }: NotificationsListProps) => {
             rejectCount={rejectCount}
             userVote={getUserVote(notification.id)}
             onVoteChange={fetchData}
+            compact={compact}
           />
         );
       })}
