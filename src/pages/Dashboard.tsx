@@ -21,10 +21,8 @@ import {
   FileText,
   Loader2,
   LogOut,
-  Download,
-  Bell
+  Download
 } from "lucide-react";
-import NotificationsManagement from "@/components/NotificationsManagement";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -493,7 +491,7 @@ const DashboardPage = () => {
           </motion.div>
 
            <Tabs defaultValue="videos" className="max-w-5xl mx-auto">
-             <TabsList className="grid w-full grid-cols-4 mb-8">
+             <TabsList className="grid w-full grid-cols-3 mb-8">
               <TabsTrigger value="videos" className="gap-2">
                 <Video className="w-4 h-4" />
                 الفيديوهات
@@ -505,10 +503,6 @@ const DashboardPage = () => {
                <TabsTrigger value="files" className="gap-2">
                  <FileText className="w-4 h-4" />
                  الملفات
-               </TabsTrigger>
-               <TabsTrigger value="notifications" className="gap-2">
-                 <Bell className="w-4 h-4" />
-                 الإشعارات
                </TabsTrigger>
             </TabsList>
 
@@ -995,10 +989,6 @@ const DashboardPage = () => {
                    </CardContent>
                  </Card>
                </div>
-             </TabsContent>
-
-             <TabsContent value="notifications">
-               <NotificationsManagement />
              </TabsContent>
           </Tabs>
         </div>
