@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { Link, useLocation } from "react-router-dom";
-import { Home, Play, Atom, LayoutDashboard, Menu, X, GraduationCap, Info, Shield, FileText, Bell } from "lucide-react";
+import { Home, Play, Atom, LayoutDashboard, Menu, X, GraduationCap, Info, Shield, FileText, Bell, User } from "lucide-react";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import atomIcon from "@/assets/atom-icon.png";
@@ -118,30 +119,41 @@ const Navbar = () => {
               </Link>
             ))}
             
-            {/* Notifications Bell */}
+            {/* User area with notifications & avatar */}
             {user && (
-              <Popover open={notificationsOpen} onOpenChange={setNotificationsOpen}>
-                <PopoverTrigger asChild>
-                  <Button variant="ghost" size="icon" className="relative">
-                    <Bell className="w-5 h-5" />
-                    {unreadCount > 0 && (
-                      <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                        {unreadCount > 9 ? '9+' : unreadCount}
-                      </span>
-                    )}
+              <div className="flex items-center gap-1">
+                <Popover open={notificationsOpen} onOpenChange={setNotificationsOpen}>
+                  <PopoverTrigger asChild>
+                    <Button variant="ghost" size="icon" className="relative">
+                      <Bell className="w-5 h-5" />
+                      {unreadCount > 0 && (
+                        <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                          {unreadCount > 9 ? '9+' : unreadCount}
+                        </span>
+                      )}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-80 p-0 max-h-96 overflow-auto" align="end">
+                    <div className="p-3 border-b">
+                      <h3 className="font-semibold text-foreground">الإشعارات</h3>
+                    </div>
+                    <NotificationsList 
+                      userGrade={userGrade || undefined} 
+                      userId={user?.id} 
+                      compact={true}
+                    />
+                  </PopoverContent>
+                </Popover>
+                <Link to="/profile-settings">
+                  <Button variant="ghost" size="icon" className="rounded-full">
+                    <Avatar className="w-8 h-8">
+                      <AvatarFallback className="bg-primary/10 text-primary text-sm">
+                        <User className="w-4 h-4" />
+                      </AvatarFallback>
+                    </Avatar>
                   </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-80 p-0 max-h-96 overflow-auto" align="end">
-                  <div className="p-3 border-b">
-                    <h3 className="font-semibold text-foreground">الإشعارات</h3>
-                  </div>
-                  <NotificationsList 
-                    userGrade={userGrade || undefined} 
-                    userId={user?.id} 
-                    compact={true}
-                  />
-                </PopoverContent>
-              </Popover>
+                </Link>
+              </div>
             )}
 
             {/* Student Login Button */}
